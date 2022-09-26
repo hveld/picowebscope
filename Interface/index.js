@@ -7,15 +7,19 @@ var canvas = document.getElementById("myCanvas");
 var context = canvas.getContext("2d");
 let width = screen.width;
 let height = screen.height;
-canvas.width = width;
-canvas.height = height;
+ratioCanvasScreen = 0.5;
+canvas.width = width * ratioCanvasScreen;
+canvas.height = height * ratioCanvasScreen;
 var amplitude = 120,
     phase = 90,
     frequency = 2;
+
 let arraySin = [[40, 100], [900, 200], [200, 600], [40, 100]]
 let normalisedArray = []
 function testCreateFunction() {
-    normalise(arraySin)
+    normalisedArray = [];
+    normalisedArray = arraySin;
+    // normalise(arraySin)
     context.beginPath();
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.closePath();
@@ -29,17 +33,16 @@ function testCreateFunction() {
 }
 
 function drawAxis() {
-    var grid_size = 25;
-    var x_axis_distance_grid_lines = 0;
-    var y_axis_distance_grid_lines = 0;
-    var x_axis_starting_point = { number: 1, suffix: '\u03a0' };
-    var y_axis_starting_point = { number: 1, suffix: '' };
-
+    var grid_size = canvas.height / 8;
+    var x_axis_starting_point = { number: 1 };
+    var y_axis_starting_point = { number: 1 };
     var canvas_width = canvas.width;
     var canvas_height = canvas.height;
-
     var num_lines_x = Math.floor(canvas_height / grid_size);
-    var num_lines_y = Math.floor(canvas_width / grid_size);
+    var num_lines_y = 10;
+    var x_axis_distance_grid_lines = num_lines_x;
+    var y_axis_distance_grid_lines = 0;
+    canvas.width = grid_size * num_lines_y;
 
     // Draw grid lines along X-axis
     for (var i = 0; i <= num_lines_x; i++) {
@@ -88,6 +91,8 @@ function drawAxis() {
     // Translate to the new origin. Now Y-axis of the canvas is opposite to the Y-axis of the graph. So the y-coordinate of each element will be negative of the actual
     context.translate(y_axis_distance_grid_lines * grid_size, x_axis_distance_grid_lines * grid_size);
 
+
+    ArrayToPico[unitIndex]
     // Ticks marks along the positive X-axis
     for (i = 1; i < (num_lines_y - y_axis_distance_grid_lines); i++) {
         context.beginPath();
@@ -102,7 +107,7 @@ function drawAxis() {
         // Text value at that point
         context.font = '9px Arial';
         context.textAlign = 'start';
-        context.fillText(x_axis_starting_point.number * i + x_axis_starting_point.suffix, grid_size * i - 2, 15);
+        context.fillText(x_axis_starting_point.number * i * 10, grid_size * i - 2, 15);
     }
 
     // Ticks marks along the negative X-axis
@@ -119,7 +124,7 @@ function drawAxis() {
         // Text value at that point
         context.font = '9px Arial';
         context.textAlign = 'end';
-        context.fillText(-x_axis_starting_point.number * i + x_axis_starting_point.suffix, -grid_size * i + 3, 15);
+        context.fillText(-x_axis_starting_point.number * i, -grid_size * i + 3, 15);
     }
 
     // Ticks marks along the positive Y-axis
@@ -137,7 +142,7 @@ function drawAxis() {
         // Text value at that point
         context.font = '9px Arial';
         context.textAlign = 'start';
-        context.fillText(-y_axis_starting_point.number * i + y_axis_starting_point.suffix, 8, grid_size * i + 3);
+        context.fillText(-y_axis_starting_point.number * i, 8, grid_size * i + 3);
     }
 
     // Ticks marks along the negative Y-axis
@@ -155,7 +160,7 @@ function drawAxis() {
         // Text value at that point
         context.font = '9px Arial';
         context.textAlign = 'start';
-        context.fillText(y_axis_starting_point.number * i + y_axis_starting_point.suffix, 8, -grid_size * i + 3);
+        context.fillText(y_axis_starting_point.number * i, 8, -grid_size * i + 3);
     }
 }
 
@@ -189,13 +194,18 @@ function Createfunction() {
     // period = 1 / frequency
     //100 iterations
     var increase = 0.5 * Math.PI / 90;
+    sin_array = []
     for (i = 0; i <= 360; i++) {
         context.moveTo(x, y);
         x = i;
         y = 180 - Math.sin((counter + phase) * frequency) * amplitude;
         counter += increase;
         context.lineTo(x, y);
+        tmparray = { x: x, y: y }
+        console.log(tmparray)
+        sin_array[i] = tmparray;
     }
+    console.log(sin_array)
     context.stroke(); // Don't stroke for each iteration of the loop.
 }
 
@@ -228,7 +238,7 @@ $('#timePerDivisionSlider').on("input change", function () {
     unitIndex = 0;
     ValueTimePerDivsionToPico = RangeSliderHandler("timePerDivisionSlider", unitIndex);
     ArrayToPico[unitIndex] = ValueTimePerDivsionToPico;
-    frequency = ValueTimePerDivsionToPico;
+
 });
 
 $('#VoltagePerDivisionSlider').on("input change", function () {
@@ -251,6 +261,7 @@ $('#some-switch').on("input", function () {
 });
 
 $('#updateButton').on("click", function () {
-    testCreateFunction();
+    //testCreateFunction();
+    Createfunction()
 });
 
