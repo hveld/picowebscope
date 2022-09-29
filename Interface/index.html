@@ -5,6 +5,7 @@
 
 <body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
     <label class="switch">
         <input type="checkbox" id="on-off-switch">
         <span class="slider round"></span>
@@ -22,7 +23,7 @@
         <p>Time per division</p>
         <input id="timePerDivisionSlider" type="range" min="0" max="14" value="0" step="1">
         <div class=" range_output">
-            <output name="TimePerDivisonOutput" id="timePerDivisionSliderValue">Value: 100 us</output>
+            <output name="TimePerDivisonOutput" id="timePerDivisionSliderValue">Value: 100 us/div</output>
         </div>
     </label>
 
@@ -33,10 +34,8 @@
             <output name="VoltagePerDivisonOutput" id="VoltagePerDivisionSliderValue">Value: 10 mV/div</output>
         </div>
     </label>
-
     <button id="updateButton">Update</button>
-    <canvas id="myCanvas" width=1000 , height=1900>
-    </canvas>
+    <div id="chart"> </div>
     <script src="index.js"></script>
 </body>
 

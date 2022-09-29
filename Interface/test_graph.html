@@ -37,27 +37,33 @@
 <body>
     <div id="chart"> </div>
     <script>
-
         var margin = { top: 60, right: 60, bottom: 60, left: 60 },
             width = window.innerHeight * 2 - margin.left - margin.right,
             height = window.innerHeight - margin.top - margin.bottom,
-            numTicks = 20,
-            numDashes = 5,
-            numDots = 20;
-        tickSpace = 8;
-        console.log(width, height)
-        var y = d3.scaleLinear()
+            numTicks = 10,
+            tickSpace = 0;
+        width = width / 2;
+        height = height / 2;
+        var y = d3.scaleLinear()            //write numbers on the y axis
             .range([height, 0])
-            .domain([-100, 100])
+            .domain([0, 100])
 
-        var x = d3.scaleLinear()
+        var x = d3.scaleLinear()             //write numbers on the x axis
             .range([0, width])
-            .domain([-100, 100])
+            .domain([0, 100])
 
-        var xConversion = d3.scaleLinear()
-            .range([-100, 100])
-            .domain([0, 1])
-
+        var Conversion = function (Value, minDomain, maxDomain, axis) {
+            var range = width;
+            if (axis == 'y')
+                range = height;
+            else {
+                range = width
+            }
+            var x = d3.scaleLinear()
+                .range([0, range])
+                .domain([minDomain, maxDomain])
+            return x(Value)
+        }
         var svg = d3.select("#chart").append("svg")
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
@@ -138,60 +144,13 @@
             .attr("d", line)
             .style("filter", "url(#gooeyCodeFilter)");
 
-        // //make dashes along the middle axis vertically
-        // svg.selectAll(".verticalDashes")
-        //     .data(d3.range(numTicks * numDashes).map(Object))
-        //     .enter().append("line")
-        //     .attr("class", "verticalDashes")
-        //     .attr("y1", function (d, i) { return i * (height / numTicks / numDashes); })
-        //     .attr("y2", function (d, i) { return i * (height / numTicks / numDashes); })
-        //     .attr("x1", x(-.025))
-        //     .attr("x2", x(.025))
-        //     .style("stroke", "#000")
-        //     .style("stroke-dasharray", function () {
-        //         var unit = x(.025) - x(0);
-        //         return (unit - (tickSpace / 4)) + "," + (tickSpace / 2) + "," + (unit - (tickSpace / 4))
-        //     })
-
-        // //make dashes along the middle axis horizontally
-        // svg.selectAll(".horizontalDashes")
-        //     .data(d3.range(numTicks * numDashes).map(Object))
-        //     .enter().append("line")
-        //     .attr("class", "horizontalDashes")
-        //     .attr("x1", function (d, i) { return i * (width / numTicks / numDashes); })
-        //     .attr("x2", function (d, i) { return i * (width / numTicks / numDashes); })
-        //     .attr("y1", y(-.2))
-        //     .attr("y2", y(.2))
-        //     .style("stroke", "#000")
-        //     .style("stroke-dasharray", function () {
-        //         var unit = x(.2) - x(0);
-        //         return (unit - (tickSpace / 4)) + "," + (tickSpace / 2) + "," + (unit - (tickSpace / 4))
-        //     })
-        //shows two lines of rows in the middle of the screen horizontally
-        // svg.selectAll(".rowOne dots")
-        //     .data(d3.range(numTicks * numDots).map(Object))
-        //     .enter().append("circle")
-        //     .attr("class", "rowOne dots")
-        //     .attr("cx", function (d, i) { return i * (width / numTicks / numDots); })
-        //     .attr("cy", function (d, i) { return i % 2 == 0 ? y(.28) : y(-.28) })
-        //     .attr("r", 1);
-
-        // svg.selectAll(".rowTwo")
-        //     .data(d3.range(numTicks * numDots).map(Object))
-        //     .enter().append("circle")
-        //     .attr("class", "rowTwo dots")
-        //     .attr("cx", function (d, i) { return i * (width / numTicks / numDots); })
-        //     .attr("cy", function (d, i) { return i % 2 == 0 ? y(.44) : y(-.44) })
-        //     .attr("r", 1);
-
-
         svg.append("clipPath")
             .attr("id", "clip")
             .append("rect")
             .attr("width", width)
             .attr("height", height);
-        let arraySin = [{ x: 40, y: 100 }, { x: 900, y: 200 }, { x: 200, y: 600 }, { x: 40, y: 100 }]
-        arraySin = [
+
+        let arraySin = [
             {
                 "x": 0,
                 "y": 206.34514747711756
@@ -1639,49 +1598,31 @@
         ]
 
         var strokeWidth = 10;
+        var minX = 0,                               //this needs to be auatomated later. These values must be given from the Pico.
+            maxX = 360,
+            minY = 60,
+            maxY = 300;
 
-        //stationary sinus
-        for (j = 0; j <= 3; j++) {
-            for (i = 0; i < arraySin.length - 1; i++) {
-                x1 = j * 360 + arraySin[i].x
-                y1 = arraySin[i].y + 110
-                x2 = j * 360 + arraySin[i + 1].x
-                y2 = arraySin[i + 1].y + 110
-                svg.append("line")
-                    .attr("x1", x1)
-                    .attr("y1", y1)
-                    .attr("x2", x2)
-                    .attr("y2", y2)
-                    .style("stroke", "rgb(0,255,0)")
-                    .style("stroke-width", strokeWidth);
-            }
+        //stationary function
+        for (i = 0; i < arraySin.length - 1; i++) {
+            //x1 = Conversion(arraySin[i].x, minX, maxX);
+
+            x1 = Conversion(arraySin[i].x, minX, maxX, 'x');
+            y1 = Conversion(arraySin[i].y, minY, maxY, 'y');
+            x2 = Conversion(arraySin[i + 1].x, minX, maxX, 'x');
+            y2 = Conversion(arraySin[i + 1].y, minY, maxY, 'y');
+            // console.log(x1, y1, x2, y2);
+            svg.append("line")
+                .attr("x1", x1)
+                .attr("y1", y1)
+                .attr("x2", x2)
+                .attr("y2", y2)
+                .style("stroke", "rgb(0,255,0)")
+                .style("stroke-width", strokeWidth);
         }
-
-        // // moving line
-        // var strokeWidth = 10;
-        // var t = d3.interval(function (elapsed) {
-
-        //     data = arraySin;
-        //     // data.push({ x: 0, y: 0 });
-        //     xConversion.domain([0, data.length - 1])
-
-        //     data.forEach(function (d, i) {
-        //         d.x = xConversion(i)
-        //         d.y = d.y
-        //     });
-
-        //     strokeWidth -= .01
-
-        //     svg.select(".line")
-        //         .datum(data)
-        //         .attr("d", line)
-        //         .style("stroke-width", strokeWidth)
-
-        //     if (elapsed > 30000) t.stop();
-        // }, 10);
-
-
-
-
+        // var delayInMilliseconds = 2000;
+        // setTimeout(function () {
+        //     d3.select("svg").remove();
+        // }, delayInMilliseconds);
     </script>
 </body>
