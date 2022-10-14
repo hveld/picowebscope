@@ -5,7 +5,9 @@ import json
 f = open('data.json')
 
 data_out = json.load(f)
+i = 0
 async def handler(websocket, path):
+    i = 0
     while True:
         data_in = await websocket.recv()
         if(data_in == "keep_alive"):
@@ -13,7 +15,11 @@ async def handler(websocket, path):
         else:
             print("sending data")
             #reply = f"Data recieved as:  {data}!"
-            reply = json.dumps(data_out)
+            data = data_out["data"][i]
+            i +=1
+            if i >= 360:
+                i = 0
+            reply = json.dumps(data)
             await websocket.send(reply)
  
 start_server = websockets.serve(handler, "localhost", 8000)
