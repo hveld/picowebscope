@@ -4,7 +4,7 @@ ArrayToPico = [100, 10]
 switchStateArray = [false, false]
 var arraySin;
 
-var smoothie = new SmoothieChart({ millisPerPixel: 25, scrollBackwards: true, tooltip: true, timestampFormatter: SmoothieChart.timeFormatter });
+var smoothie = new SmoothieChart({ minValue: 60, maxValue: 300, millisPerPixel: 25, scrollBackwards: true, tooltip: true, timestampFormatter: SmoothieChart.timeFormatter });
 smoothie.streamTo(document.getElementById("mycanvas"));
 smoothie.stop();
 
@@ -56,8 +56,6 @@ var refreshSentDataId;
 var keepAliveId;
 
 function normalise(Y, min, max) {
-    min = 60;
-    max = 300;
     normalisedY = (Y - min) / (max - min);
     return normalisedY;
 }
@@ -65,7 +63,7 @@ function normalise(Y, min, max) {
 function startUpdating(Value) {
     var delay = 55000;
     if (Value == true) {
-        delay = 10;
+        delay = 450;
         clearInterval(keepAliveId);
         refreshSentDataId = setInterval(Send_data, delay);
     } else {
@@ -76,7 +74,6 @@ function startUpdating(Value) {
 }
 
 function startStop(Value) {
-    var delay = 55000;
     if (Value == true) {
         smoothie.start();
     } else {
@@ -112,15 +109,14 @@ $('#some-switch').on("input", function () {
     startStop(ValueSwitchSomeSwitch);
 });
 
-
 // Data
 var line1 = new TimeSeries();
 
-// Add a random value to each line every second
 setInterval(function () {
-    line1.append(new Date().getTime(), normalise(arraySin["y"], 60, 300));              //60 and 300 are the max values for y. This needs to be given from the hardware/ calculated
+    //normalise(arraySin["y"], 60, 300)                         //normalise the data only necessary if the values are not between 0 and 1 and this is wanted
+    line1.append(new Date().getTime(), arraySin["y"]);              //60 and 300 are the max values for y. This needs to be given from the hardware/ calculated
     arraySin = NaN;
-}, 15);
+}, 500);
 
 // Add to SmoothieChart
 smoothie.addTimeSeries(line1, { lineWidth: 1.6, strokeStyle: '#00ff00' });

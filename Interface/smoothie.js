@@ -231,7 +231,7 @@
         if (isNaN(timestamp) || isNaN(value)) {
             return
         }
-
+        console.log(timestamp)
         var lastI = this.data.length - 1;
         if (lastI >= 0) {
             // Rewind until we find the place for the new data
