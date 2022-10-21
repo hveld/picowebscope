@@ -9,7 +9,6 @@ f = open('data.json')
 data_out = json.load(f)
 i = 0
 
-
 async def handler(websocket, path):
     i = 0
     while True:

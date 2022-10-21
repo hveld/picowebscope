@@ -235,7 +235,7 @@ $('#TriggerSlider').on("input change", function () {
     unitIndex = 2;
     var element = $('#TriggerSlider'),
     value = element.val()
-    var voltage = (value/100) *  ArrayToPico[0]
+    var voltage = (value/100) *  ArrayToPico[0]    
     $('#TriggerSliderValue').text("Value in percentage: " + value + " %");
     $('#TriggerSliderValueVoltage').text("Value in voltage: " + voltage);
     ArrayToPico[unitIndex] = value;
