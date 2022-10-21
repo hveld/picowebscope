@@ -1,17 +1,9 @@
-unit = [["00 us/div", " ms/div", "0 ms/div", "00 ms/div", " s/div"],        //time per division
-["0 mV/div", "00 mV/div", " V/div"]]        //voltage per division
 ArrayToPico = [100, 10]
 switchStateArray = [false, false]
 var arraySin = [];
 var delayBetweenCalls = 20;
 
-
-// var smoothie = new SmoothieChart({ minValue: 60, maxValue: 300, millisPerPixel: 25, scrollBackwards: true, tooltip: true, timestampFormatter: SmoothieChart.timeFormatter });
-// smoothie.streamTo(document.getElementById("mycanvas"));
-// smoothie.stop();
-
 const socket = new WebSocket('ws://localhost:8000');
-
 
 socket.addEventListener('open', function (event) {
 
@@ -32,8 +24,6 @@ socket.addEventListener('message', function (event) {
     if (arraySin.length >= 360) {
         arraySin.length = 0
     }
-    console.log(arraySin)
-
 });
 
 class graph {
@@ -146,7 +136,7 @@ class graph {
         d3.select("svg").remove();
     }
     removeLine() {
-        d3.select("#plotted_line").remove();
+        d3.select("#line").remove();3
     }
     Conversion(Value, minDomain, maxDomain, axis) {
         var range = this.width;
@@ -162,18 +152,30 @@ class graph {
     }
 }
 
-function RangeSliderHandler(SliderId, unitIndex) {
-    var
-        element = $('#' + SliderId),
-        value = element.val(),
-        values = [1, 2, 5]
-    let unitNmbr = 0;
-    if (value >= 3) {
-        unitNmbr = Math.floor(value / 3);
-        value = value % 3;
+function RangeSliderHandler(SliderId,unitIndex) {
+    var element = $('#' + SliderId),
+        value = element.val()
+    var unitArray, arrayForTimePerDivision = [];
+    if(unitIndex == 0){
+        arrayForTimePerDivision = [100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000,2000000,5000000]
+        unitArray = ["us/div","s/div","ms/div"];
+    }else if (unitIndex == 1){
+        arrayForTimePerDivision = [10,20,50,100,200,500,1000,2000,5000,10000,20000,50000]
+        unitArray = ["mV/div","V/div"];
     }
-    $('#' + SliderId + 'Value').text("Value: " + values[value] + unit[unitIndex][unitNmbr]);
-    return parseInt(values[value]) * 100 * (10 ** unitNmbr);
+    
+    var valueToPico,value = arrayForTimePerDivision[value]
+    var unit = unitArray[0];
+    if (Number.isInteger(value/10**6)){
+        unit = unitArray[unitArray.length-2];
+        value = value/10**6;
+    } else if (Number.isInteger(value/10**3)) {
+        unit = unitArray[unitArray.length -1];
+        value = value/10**3;
+    }
+
+    $('#' + SliderId + 'Value').text("Value: " + value + " " + unit);
+    return valueToPico;
 }
 
 function SwitchHandler(SwitchstateIndex) {
@@ -198,7 +200,6 @@ function normalise(Y, min, max) {
 function startUpdating(Value) {
     var delay = 55000;
     if (Value == true) {
-        console.log("startUpdating");
         clearInterval(keepAliveId);
         refreshSentDataId = setInterval(Send_data, delayBetweenCalls);
     } else {
@@ -208,21 +209,18 @@ function startUpdating(Value) {
     }
 }
 
-function updategraph() {
+function updateoscilloscopePlotter() {
     graphPlotter.updateGraphWithAxes();
 }
 function startStopUpdatingGraph(Value) {
     if (Value == true) {
-        console.log("startUpdating graph");
-        updateGraphID = setInterval(updategraph, delayBetweenCalls);
+        updateGraphID = setInterval(updateoscilloscopePlotter, delayBetweenCalls);
     } else {
-        console.log("stop updating graph");
-        clearInterval(updateGraphID);
-        //stop updating graph
+        clearInterval(updateGraphID); //stop updating graph
     }
 }
 
-// part of code that gets elements from html and uses all the above fuctions.
+// part of code that gets elements from html and uses all the above fuctions and classes
 $('#timePerDivisionSlider').on("input change", function () {
     unitIndex = 0;
     ValueTimePerDivsionToPico = RangeSliderHandler("timePerDivisionSlider", unitIndex);
