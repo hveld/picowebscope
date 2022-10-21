@@ -54,7 +54,6 @@ class graph {
         var y = d3.scaleLinear()            //calculate numbers for the y axis
             .range([this.height, 0])
             .domain([0, this.numTicksY * axisNumberOnY])
-
         var x = d3.scaleLinear()             //calculate numbers for the x axis
             .range([0, this.width])
             .domain([0, this.numTicksX * axisNumberOnX])
@@ -163,8 +162,8 @@ function RangeSliderHandler(SliderId,unitIndex) {
         arrayForTimePerDivision = [10,20,50,100,200,500,1000,2000,5000,10000,20000,50000]
         unitArray = ["mV/div","V/div"];
     }
-    
-    var valueToPico,value = arrayForTimePerDivision[value]
+    var valueToPico = arrayForTimePerDivision[value]
+    var value = arrayForTimePerDivision[value]
     var unit = unitArray[0];
     if (Number.isInteger(value/10**6)){
         unit = unitArray[unitArray.length-2];
@@ -173,7 +172,6 @@ function RangeSliderHandler(SliderId,unitIndex) {
         unit = unitArray[unitArray.length -1];
         value = value/10**3;
     }
-
     $('#' + SliderId + 'Value').text("Value: " + value + " " + unit);
     return valueToPico;
 }
@@ -231,18 +229,37 @@ $('#VoltagePerDivisionSlider').on("input change", function () {
     unitIndex = 1;
     ValueVoltagePerDivsionToPico = RangeSliderHandler("VoltagePerDivisionSlider", unitIndex);
     ArrayToPico[unitIndex] = ValueVoltagePerDivsionToPico;
+    });
+
+$('#TriggerSlider').on("input change", function () {
+    unitIndex = 2;
+    var element = $('#TriggerSlider'),
+    value = element.val()
+    var voltage = (value/100) *  ArrayToPico[0]
+    $('#TriggerSliderValue').text("Value in percentage: " + value + " %");
+    $('#TriggerSliderValueVoltage').text("Value in voltage: " + voltage);
+    ArrayToPico[unitIndex] = value;
 });
 
 $('#on-off-switch').on("input", function () {
+    unitIndex = 3;
     SwitchstateIndex = 0;
     ValueSwitchOnOffSwitch = SwitchHandler(SwitchstateIndex);
-    ArrayToPico.push(ValueSwitchOnOffSwitch);
+    ArrayToPico[unitIndex] = ValueSwitchOnOffSwitch;
     startUpdating(ValueSwitchOnOffSwitch);
+    startStopUpdatingGraph(ValueSwitchOnOffSwitch);
 });
 
-$('#some-switch').on("input", function () {
+$('#ACDCcoupling').on("input", function () {
+    unitIndex = 4;
     SwitchstateIndex = 1;
-    ValueSwitchSomeSwitch = SwitchHandler(SwitchstateIndex);
-    ArrayToPico.push(ValueSwitchSomeSwitch);
-    startStopUpdatingGraph(ValueSwitchSomeSwitch);
+    ValueSwitchACDC = SwitchHandler(SwitchstateIndex);
+    ArrayToPico[unitIndex] = ValueSwitchACDC;
+});
+
+$('#channel').on("input", function () {
+    unitIndex = 5;
+    SwitchstateIndex = 2;
+    ValueSwitchChannel = SwitchHandler(SwitchstateIndex);
+    ArrayToPico[unitIndex] = ValueSwitchChannel;
 });
