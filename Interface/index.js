@@ -4,11 +4,8 @@ var arraySin = [];
 var delayBetweenCalls = 20;
 
 const socket = new WebSocket('ws://localhost:8000');
-
 socket.addEventListener('open', function (event) {
-
     socket.send('Connection Established');
-
 });
 function Send_data() {
     socket.send("request_data");
@@ -43,10 +40,6 @@ class graph {
         this.removeGraph()
         this.createAxes(ArrayToPico[0], ArrayToPico[1]);
         this.drawLinesInGraph();
-        this.drawLine()
-    }
-    updateGraph() {                             //this does not work
-        this.removeLine()
         this.drawLine()
     }
 
@@ -134,9 +127,6 @@ class graph {
     removeGraph() {
         d3.select("svg").remove();
     }
-    removeLine() {
-        d3.select("#line").remove();3
-    }
     Conversion(Value, minDomain, maxDomain, axis) {
         var range = this.width;
         if (axis == 'y')
@@ -151,26 +141,26 @@ class graph {
     }
 }
 
-function RangeSliderHandler(SliderId,unitIndex) {
+function RangeSliderHandler(SliderId, unitIndex) {
     var element = $('#' + SliderId),
         value = element.val()
     var unitArray, arrayForTimePerDivision = [];
-    if(unitIndex == 0){
-        arrayForTimePerDivision = [100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000,2000000,5000000]
-        unitArray = ["us/div","s/div","ms/div"];
-    }else if (unitIndex == 1){
-        arrayForTimePerDivision = [10,20,50,100,200,500,1000,2000,5000,10000,20000,50000]
-        unitArray = ["mV/div","V/div"];
+    if (unitIndex == 0) {
+        arrayForTimePerDivision = [100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000, 2000000, 5000000]
+        unitArray = ["us/div", "s/div", "ms/div"];
+    } else if (unitIndex == 1) {
+        arrayForTimePerDivision = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000]
+        unitArray = ["mV/div", "V/div"];
     }
     var valueToPico = arrayForTimePerDivision[value]
     var value = arrayForTimePerDivision[value]
     var unit = unitArray[0];
-    if (Number.isInteger(value/10**6)){
-        unit = unitArray[unitArray.length-2];
-        value = value/10**6;
-    } else if (Number.isInteger(value/10**3)) {
-        unit = unitArray[unitArray.length -1];
-        value = value/10**3;
+    if (Number.isInteger(value / 10 ** 6)) {
+        unit = unitArray[unitArray.length - 2];
+        value = value / 10 ** 6;
+    } else if (Number.isInteger(value / 10 ** 3)) {
+        unit = unitArray[unitArray.length - 1];
+        value = value / 10 ** 3;
     }
     $('#' + SliderId + 'Value').text("Value: " + value + " " + unit);
     return valueToPico;
@@ -229,13 +219,13 @@ $('#VoltagePerDivisionSlider').on("input change", function () {
     unitIndex = 1;
     ValueVoltagePerDivsionToPico = RangeSliderHandler("VoltagePerDivisionSlider", unitIndex);
     ArrayToPico[unitIndex] = ValueVoltagePerDivsionToPico;
-    });
+});
 
 $('#TriggerSlider').on("input change", function () {
     unitIndex = 2;
     var element = $('#TriggerSlider'),
-    value = element.val()
-    var voltage = (value/100) *  ArrayToPico[0]    
+        value = element.val()
+    var voltage = (value / 100) * ArrayToPico[0]
     $('#TriggerSliderValue').text("Value in percentage: " + value + " %");
     $('#TriggerSliderValueVoltage').text("Value in voltage: " + voltage);
     ArrayToPico[unitIndex] = value;
