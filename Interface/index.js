@@ -105,7 +105,7 @@ class graph {
             minX = 0,                               //this needs to be auatomated later. These values must be given from the Pico.
             maxX = 360,
             minY = 60,
-            maxY = 300; // 300
+            maxY = 300;
         var x1, x2, y1, y2 = 0;
         //stationary function
 
@@ -219,13 +219,16 @@ $('#VoltagePerDivisionSlider').on("input change", function () {
     unitIndex = 1;
     ValueVoltagePerDivsionToPico = RangeSliderHandler("VoltagePerDivisionSlider", unitIndex);
     ArrayToPico[unitIndex] = ValueVoltagePerDivsionToPico;
+    var voltage = (ArrayToPico[2] / 100) * ValueVoltagePerDivsionToPico;
+    $('#TriggerSliderValue').text("Value in percentage: " + ArrayToPico[2] + " %");
+    $('#TriggerSliderValueVoltage').text("Value in voltage: " + voltage);
 });
 
 $('#TriggerSlider').on("input change", function () {
     unitIndex = 2;
     var element = $('#TriggerSlider'),
         value = element.val()
-    var voltage = (value / 100) * ArrayToPico[0]
+    var voltage = (value / 100) * ArrayToPico[1]
     $('#TriggerSliderValue').text("Value in percentage: " + value + " %");
     $('#TriggerSliderValueVoltage').text("Value in voltage: " + voltage);
     ArrayToPico[unitIndex] = value;
