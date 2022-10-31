@@ -31,8 +31,8 @@ class graph {
             this.numTicksX = 10,
             this.numTicksY = 8,
             this.tickSpace = 0;
-        this.width = this.width;
-        this.height = this.height;
+        this.width = this.width*0.6;
+        this.height = this.height*0.6;
         this.updateGraphWithAxes();
     }
 
@@ -101,7 +101,7 @@ class graph {
             .text("mV/div");
     }
     async drawLine() {
-        var strokeWidth = 10,
+        var strokeWidth = 5,
             minX = 0,                               //this needs to be auatomated later. These values must be given from the Pico.
             maxX = 360,
             minY = 60,
@@ -207,6 +207,18 @@ function startStopUpdatingGraph(Value) {
         clearInterval(updateGraphID); //stop updating graph
     }
 }
+
+function myFunction() {
+    var scope = document.getElementById("scope");
+    var FFT = document.getElementById("FFT");
+    if (scope.style.display === "none") {
+        scope.style.display = "block";
+        FFT.style.display = "none";
+    } else {
+        scope.style.display = "none";
+        FFT.style.display = "block";
+      }
+  }
 
 // part of code that gets elements from html and uses all the above fuctions and classes
 $('#timePerDivisionSlider').on("input change", function () {

@@ -135,3 +135,18 @@ input:checked+.slider:before {
     background-color: #04AA6D;
     color: white;
   }
+
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr 5fr;
+    grid-gap: 20px;
+}
+
+
+#scope {
+  }
+
+#FFT {
+    display: none;
+  }

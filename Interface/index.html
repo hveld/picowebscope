@@ -6,52 +6,68 @@
     <script src="libraries/d3.v4.min.js"></script>
 </head>
 <body>
-    <label class="switch">
-        <input type="checkbox" id="on-off-switch">
-        <span class="slider round"></span>
-    </label>
-    <label>On/Off</label>
-    <br>
-    <br>
-    <label class="switch">
-        <input type="checkbox" id="ACDCcoupling">
-        <span class="slider round"></span>
-    </label>
-    <label>AC/DC</label>
-    <br>
-    <br>
-    <label class="switch">
-        <input type="checkbox" id="channel">
-        <span class="slider round"></span>
-    </label>
-    <label>channel 1 or 2</label>
+    <div class="grid-container">
 
-    <label class="Time per division">
-        <p>Time per division</p>
-        <input id="timePerDivisionSlider" type="range" min="0" max="14" value="0" step="1">
-        <div class=" range_output">
-            <output name="TimePerDivisonOutput" id="timePerDivisionSliderValue">Value: 100 us/div</output>
+        <div class="grid-child waveform" >
+            WaveformGenerator
+            <br><br>
+            HIER KOMEN OPTIES VOOR DE WAVEFORMGENERATOR
         </div>
-    </label>
-
-    <label class="Voltage per division">
-        <p>Voltage per division</p>
-        <input id="VoltagePerDivisionSlider" type="range" min="0" max="8" value="0" step="1">
-        <div class="range_output">
-            <output name="VoltagePerDivisonOutput" id="VoltagePerDivisionSliderValue">Value: 10 mV/div</output>
+        <div class="grid-child FFT" id = "FFT">
+            <button onclick="myFunction()">Oscilloscope</button>
+            <br><br>
+            HIER KOMEN OPTIES VOOR DE FFT
         </div>
-    </label>
-    <label class="Trigger">
-        <p>Trigger</p>
-        <input id="TriggerSlider" type="range" min="0" max="100" value="0" step="1">
-    </label>
-    <div class="range_output">
-        <output name="Trigger_output" id="TriggerSliderValue">Value: 0 %</output>
-        <br>
-        <output name="Trigger_output" id="TriggerSliderValueVoltage">Value: 100 us/Div</output>
+        <div class="grid-child scope" id= "scope">
+            <button onclick="myFunction()">FFT</button>
+            <br><br>
+            <label class="switch">
+                <input type="checkbox" id="on-off-switch">
+                <span class="slider round"></span>
+            </label>
+            <label>On/Off</label>
+            <br>
+            <br>
+            <label class="switch">
+                <input type="checkbox" id="ACDCcoupling">
+                <span class="slider round"></span>
+            </label>
+            <label>AC/DC</label>
+            <br>
+            <br>
+            <label class="switch">
+                <input type="checkbox" id="channel">
+                <span class="slider round"></span>
+            </label>
+            <label>channel 1 or 2</label>
+        
+            <label class="Time per division">
+                <p>Time per division</p>
+                <input id="timePerDivisionSlider" type="range" min="0" max="14" value="0" step="1">
+                <div class=" range_output">
+                    <output name="TimePerDivisonOutput" id="timePerDivisionSliderValue">Value: 100 us/div</output>
+                </div>
+            </label>
+        
+            <label class="Voltage per division">
+                <p>Voltage per division</p>
+                <input id="VoltagePerDivisionSlider" type="range" min="0" max="8" value="0" step="1">
+                <div class="range_output">
+                    <output name="VoltagePerDivisonOutput" id="VoltagePerDivisionSliderValue">Value: 10 mV/div</output>
+                </div>
+            </label>
+            <label class="Trigger">
+                <p>Trigger</p>
+                <input id="TriggerSlider" type="range" min="0" max="100" value="0" step="1">
+            </label>
+            <div class="range_output">
+                <output name="Trigger_output" id="TriggerSliderValue">Value: 0 %</output>
+                <br>
+                <output name="Trigger_output" id="TriggerSliderValueVoltage">Value: 100 us/Div</output>
+            </div>
+        </div>
+        <div class="grid-child scope" id="chart"></div>
     </div>
-
-    <div id="chart"></div>
     <script src="index.js"></script>
 </body>
 
