@@ -31,8 +31,8 @@ class graph {
             this.numTicksX = 10,
             this.numTicksY = 8,
             this.tickSpace = 0;
-        this.width = this.width*0.6;
-        this.height = this.height*0.6;
+        this.width = this.width * 0.6;
+        this.height = this.height * 0.6;
         this.updateGraphWithAxes();
     }
 
@@ -101,7 +101,7 @@ class graph {
             .text("mV/div");
     }
     async drawLine() {
-        var strokeWidth = 5,
+        var strokeWidth = 1,
             minX = 0,                               //this needs to be auatomated later. These values must be given from the Pico.
             maxX = 360,
             minY = 60,
@@ -140,7 +140,37 @@ class graph {
         return xy(Value)
     }
 }
+//code that handles all the graph stuff
+graphPlotter = new graph();
+var refreshSentDataId;
+var keepAliveId;
+var updateGraphID;
 
+function startUpdating(Value) {
+    var delay = 55000;
+    if (Value == true) {
+        clearInterval(keepAliveId);
+        refreshSentDataId = setInterval(Send_data, delayBetweenCalls);
+    } else {
+        clearInterval(refreshSentDataId)
+        delay = 55000;
+        keepAliveId = setInterval(keep_alive, delay);
+    }
+}
+
+function updateoscilloscopePlotter() {
+    graphPlotter.updateGraphWithAxes();
+}
+function startStopUpdatingGraph(Value) {
+    if (Value == true) {
+        updateGraphID = setInterval(updateoscilloscopePlotter, delayBetweenCalls);
+    } else {
+        clearInterval(updateGraphID); //stop updating graph
+    }
+}
+
+
+//functions for the scope sliders and buttons
 function RangeSliderHandler(SliderId, unitIndex) {
     var element = $('#' + SliderId),
         value = element.val()
@@ -166,6 +196,7 @@ function RangeSliderHandler(SliderId, unitIndex) {
     return valueToPico;
 }
 
+
 function SwitchHandler(SwitchstateIndex) {
     if (switchStateArray[SwitchstateIndex] == false) {
         switchStateArray[SwitchstateIndex] = true;
@@ -175,40 +206,7 @@ function SwitchHandler(SwitchstateIndex) {
     return switchStateArray[SwitchstateIndex];
 }
 
-graphPlotter = new graph();
-var refreshSentDataId;
-var keepAliveId;
-var updateGraphID;
-
-function normalise(Y, min, max) {
-    normalisedY = (Y - min) / (max - min);
-    return normalisedY;
-}
-
-function startUpdating(Value) {
-    var delay = 55000;
-    if (Value == true) {
-        clearInterval(keepAliveId);
-        refreshSentDataId = setInterval(Send_data, delayBetweenCalls);
-    } else {
-        clearInterval(refreshSentDataId)
-        delay = 55000;
-        keepAliveId = setInterval(keep_alive, delay);
-    }
-}
-
-function updateoscilloscopePlotter() {
-    graphPlotter.updateGraphWithAxes();
-}
-function startStopUpdatingGraph(Value) {
-    if (Value == true) {
-        updateGraphID = setInterval(updateoscilloscopePlotter, delayBetweenCalls);
-    } else {
-        clearInterval(updateGraphID); //stop updating graph
-    }
-}
-
-function myFunction() {
+function FFTScopeChange() {
     var scope = document.getElementById("scope");
     var FFT = document.getElementById("FFT");
     if (scope.style.display === "none") {
@@ -217,10 +215,10 @@ function myFunction() {
     } else {
         scope.style.display = "none";
         FFT.style.display = "block";
-      }
-  }
+    }
+}
 
-// part of code that gets elements from html and uses all the above fuctions and classes
+// part of code that checks for all the fields and buttons for the oscilloscope.
 $('#timePerDivisionSlider').on("input change", function () {
     unitIndex = 0;
     ValueTimePerDivsionToPico = RangeSliderHandler("timePerDivisionSlider", unitIndex);
@@ -267,4 +265,53 @@ $('#channel').on("input", function () {
     SwitchstateIndex = 2;
     ValueSwitchChannel = SwitchHandler(SwitchstateIndex);
     ArrayToPico[unitIndex] = ValueSwitchChannel;
+});
+
+//code for the FFT
+function changeWindowStyle() {
+    let windowStyle = document.getElementById("window_style");
+    let windowStyleValue = windowStyle.value;
+    console.log("windowStyleValue ", windowStyleValue);                                          // do something with the value of the changed window style
+}
+
+$('#centreFrequencySlider').on("input change", function () {
+    unitIndex = 0;                                                          //change this to the correct index
+    var element = $('#centreFrequencySlider'),                              //change this when the real values are kwown
+        value = element.val()
+    $('#centreFrequencySliderValue').text("Value : " + value + " Hz");
+});
+
+$('#bandwidthSlider').on("input change", function () {
+    unitIndex = 0;                                                          //change this to the correct index
+    var element = $('#bandwidthSlider'),                                    //change this when the real values are kwown
+        value = element.val()
+    $('#bandwidthSliderValue').text("bandwidth : " + value);
+});
+
+$('#scanRateSlider').on("input change", function () {
+    unitIndex = 0;                                                          //change this to the correct index
+    var element = $('#scanRateSlider'),                                     //change this when the real values are kwown
+        value = element.val()
+    $('#scanRateSliderValue').text("scan rate : " + value);
+});
+
+//code for the waveformgenerator
+function changeGolfStyle() {
+    let golfStyle = document.getElementById("golf_style");
+    let golfStyleValue = golfStyle.value;
+    console.log("golfstyle: ", golfStyleValue);                                            // do something with the value of the changed golf style
+}
+$('#frequencySlider').on("input change", function () {
+    unitIndex = 0;                                                          //change this to the correct index
+    var element = $('#frequencySlider'),                                    //change this when the real values are kwown
+        value = element.val()
+    $('#frequencySliderValue').text("Value : " + value + " Hz");
+});
+
+$('#dutycycleSlider').on("input change", function () {
+    unitIndex = 2;                                                          //change this to the correct index
+    var element = $('#dutycycleSlider'),                                    //change this when the real values are kwown
+        value = element.val()
+    $('#dutycycleSliderValue').text("Value : " + value + " %");
+    ArrayToPico[unitIndex] = value;
 });

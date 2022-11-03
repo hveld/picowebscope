@@ -1,25 +1,77 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <link href="style.css" rel="stylesheet">
     <script src="libraries/jquery.min.js"></script>
     <script src="libraries/d3.v4.min.js"></script>
 </head>
+
 <body>
     <div class="grid-container">
 
-        <div class="grid-child waveform" >
+        <div class="grid-child waveform">
             WaveformGenerator
-            <br><br>
-            HIER KOMEN OPTIES VOOR DE WAVEFORMGENERATOR
+            <label class="Frequency">
+                <p>frequency</p>
+                <!-- change the min max to the correct values -->
+                <input id="frequencySlider" type="range" min="10" max="100000" value="0" step="1">
+                <div class=" range_output">
+                    <output name="frequencyOutput" id="frequencySliderValue">Value: 10 hz</output>
+                </div>
+            </label>
+            <label class="dutycycle">
+                <p>dutycycle</p>
+                <input id="dutycycleSlider" type="range" min="5" max="95" value="0" step="1">
+                <div class=" range_output">
+                    <output name="dutycycleOutput" id="dutycycleSliderValue">Value: 5 %</output>
+                </div>
+            </label>
+            <form name="form1" id="form1">
+                golf type: <select name="golf_style" id="golf_style" onchange="changeGolfStyle()">
+                    <option value="sinus" selected="selected">sinus</option>
+                    <option value="blok" selected="selected">blok</option>
+                    <option value="triangle" selected="selected">triangle</option>
+                </select>
+            </form>
         </div>
-        <div class="grid-child FFT" id = "FFT">
-            <button onclick="myFunction()">Oscilloscope</button>
-            <br><br>
-            HIER KOMEN OPTIES VOOR DE FFT
+        <div class="grid-child FFT" id="FFT">
+            <button onclick="FFTScopeChange()">Oscilloscope</button>
+            <label class="centreFrequency">
+                <p>centre frequency</p>
+                <!-- change the min max to the correct values -->
+                <input id="centreFrequencySlider" type="range" min="0" max="100" value="0" step="1">
+                <div class=" range_output">
+                    <output name="centreFrequencyOutput" id="centreFrequencySliderValue">Value: 0 hz</output>
+                </div>
+            </label>
+            <label class="bandwith per division">
+                <p>bandwith per division</p>
+                <!-- change the min max to the correct values -->
+                <input id="bandwidthSlider" type="range" min="0" max="100" value="0" step="1">
+                <div class=" range_output">
+                    <output name="dandwithOutput" id="bandwidthSliderValue">Value: 0</output>
+                </div>
+            </label>
+            <label class="scan rate">
+                <p>scan rate</p>
+                <!-- change the min max to the correct values -->
+                <input id="scanRateSlider" type="range" min="0" max="100" value="0" step="1">
+                <div class=" range_output">
+                    <output name="scanRateOutput" id="scanRateSliderValue">Value: 0</output>
+                </div>
+            </label>
+            <form name="form1" id="form1">
+                window style: <select name="window_style" id="window_style" onchange="changeWindowStyle()">
+                    <option value="flattop" selected="selected">flattop</option>
+                    <option value="hanning" selected="selected">hanning</option>
+                    <option value="uniform" selected="selected">uniform</option>
+                </select>
+            </form>
         </div>
-        <div class="grid-child scope" id= "scope">
-            <button onclick="myFunction()">FFT</button>
+
+        <div class="grid-child scope" id="scope">
+            <button onclick="FFTScopeChange()">FFT</button>
             <br><br>
             <label class="switch">
                 <input type="checkbox" id="on-off-switch">
@@ -40,7 +92,7 @@
                 <span class="slider round"></span>
             </label>
             <label>channel 1 or 2</label>
-        
+
             <label class="Time per division">
                 <p>Time per division</p>
                 <input id="timePerDivisionSlider" type="range" min="0" max="14" value="0" step="1">
@@ -48,7 +100,7 @@
                     <output name="TimePerDivisonOutput" id="timePerDivisionSliderValue">Value: 100 us/div</output>
                 </div>
             </label>
-        
+
             <label class="Voltage per division">
                 <p>Voltage per division</p>
                 <input id="VoltagePerDivisionSlider" type="range" min="0" max="8" value="0" step="1">
