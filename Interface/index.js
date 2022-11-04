@@ -227,12 +227,11 @@ function submit() {
     console.log(ArrayForWaveform);
 }
 
-
 // part of code that checks for all the fields and buttons for the oscilloscope.
 $('#timePerDivisionSlider').on("input change", function () {
     indexInScopeArray = 0;
     ValueTimePerDivsion = RangeSliderHandler("timePerDivisionSlider");
-    ArrayForScope[indexInScopeArray] = ValueTimePerDivsionTo;
+    ArrayForScope[indexInScopeArray] = ValueTimePerDivsion;
 });
 
 $('#VoltagePerDivisionSlider').on("input change", function () {
