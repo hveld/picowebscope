@@ -1,5 +1,6 @@
-ArrayToPico = [100, 10]
-switchStateArray = [false, false]
+ArrayForScope = [100, 10, 0, 0, 0, 0]
+ArrayForFFT = ["uniform", 0,0,0]
+ArrayForWaveform = ["sinus", 0,0]
 var arraySin = [];
 var delayBetweenCalls = 20;
 
@@ -38,7 +39,7 @@ class graph {
 
     updateGraphWithAxes() {
         this.removeGraph()
-        this.createAxes(ArrayToPico[0], ArrayToPico[1]);
+        this.createAxes(ArrayForScope[0], ArrayForScope[1]);
         this.drawLinesInGraph();
         this.drawLine()
     }
@@ -102,7 +103,7 @@ class graph {
     }
     async drawLine() {
         var strokeWidth = 1,
-            minX = 0,                               //this needs to be auatomated later. These values must be given from the Pico.
+            minX = 0,                               //this needs to be auatomated later. These values must be given from the esp.
             maxX = 360,
             minY = 60,
             maxY = 300;
@@ -169,20 +170,19 @@ function startStopUpdatingGraph(Value) {
     }
 }
 
-
 //functions for the scope sliders and buttons
-function RangeSliderHandler(SliderId, unitIndex) {
+function RangeSliderHandler(SliderId) {
     var element = $('#' + SliderId),
         value = element.val()
     var unitArray, arrayForTimePerDivision = [];
-    if (unitIndex == 0) {
+    if (SliderId == "timePerDivisionSlider") {
         arrayForTimePerDivision = [100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000, 2000000, 5000000]
         unitArray = ["us/div", "s/div", "ms/div"];
-    } else if (unitIndex == 1) {
+    } else if (SliderId == "VoltagePerDivisionSlider") {
         arrayForTimePerDivision = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000]
         unitArray = ["mV/div", "V/div"];
     }
-    var valueToPico = arrayForTimePerDivision[value]
+    var returnValue = arrayForTimePerDivision[value]
     var value = arrayForTimePerDivision[value]
     var unit = unitArray[0];
     if (Number.isInteger(value / 10 ** 6)) {
@@ -193,10 +193,10 @@ function RangeSliderHandler(SliderId, unitIndex) {
         value = value / 10 ** 3;
     }
     $('#' + SliderId + 'Value').text("Value: " + value + " " + unit);
-    return valueToPico;
+    return returnValue;
 }
 
-
+switchStateArray = [false, false]
 function SwitchHandler(SwitchstateIndex) {
     if (switchStateArray[SwitchstateIndex] == false) {
         switchStateArray[SwitchstateIndex] = true;
@@ -218,100 +218,115 @@ function FFTScopeChange() {
     }
 }
 
+//submit button
+function submit() {
+//send the data to the esp
+    console.log("submit button pressed");
+    console.log(ArrayForScope);
+    console.log(ArrayForFFT);
+    console.log(ArrayForWaveform);
+}
+
+
 // part of code that checks for all the fields and buttons for the oscilloscope.
 $('#timePerDivisionSlider').on("input change", function () {
-    unitIndex = 0;
-    ValueTimePerDivsionToPico = RangeSliderHandler("timePerDivisionSlider", unitIndex);
-    ArrayToPico[unitIndex] = ValueTimePerDivsionToPico;
+    indexInScopeArray = 0;
+    ValueTimePerDivsion = RangeSliderHandler("timePerDivisionSlider");
+    ArrayForScope[indexInScopeArray] = ValueTimePerDivsionTo;
 });
 
 $('#VoltagePerDivisionSlider').on("input change", function () {
-    unitIndex = 1;
-    ValueVoltagePerDivsionToPico = RangeSliderHandler("VoltagePerDivisionSlider", unitIndex);
-    ArrayToPico[unitIndex] = ValueVoltagePerDivsionToPico;
-    var voltage = (ArrayToPico[2] / 100) * ValueVoltagePerDivsionToPico;
-    $('#TriggerSliderValue').text("Value in percentage: " + ArrayToPico[2] + " %");
+    indexInScopeArray = 1;
+    ValueVoltagePerDivsion = RangeSliderHandler("VoltagePerDivisionSlider");
+    ArrayForScope[indexInScopeArray] = ValueVoltagePerDivsion;
+    var voltage = (ArrayForScope[2] / 100) * ValueVoltagePerDivsion;
+    $('#TriggerSliderValue').text("Value in percentage: " + ArrayForScope[2] + " %");
     $('#TriggerSliderValueVoltage').text("Value in voltage: " + voltage);
 });
 
 $('#TriggerSlider').on("input change", function () {
-    unitIndex = 2;
+    indexInScopeArray = 2;
     var element = $('#TriggerSlider'),
         value = element.val()
-    var voltage = (value / 100) * ArrayToPico[1]
+    var voltage = (value / 100) * ArrayForScope[1]
     $('#TriggerSliderValue').text("Value in percentage: " + value + " %");
     $('#TriggerSliderValueVoltage').text("Value in voltage: " + voltage);
-    ArrayToPico[unitIndex] = value;
+    ArrayForScope[indexInScopeArray] = value;
 });
 
 $('#on-off-switch').on("input", function () {
-    unitIndex = 3;
+    indexInScopeArray = 3;
     SwitchstateIndex = 0;
     ValueSwitchOnOffSwitch = SwitchHandler(SwitchstateIndex);
-    ArrayToPico[unitIndex] = ValueSwitchOnOffSwitch;
+    ArrayForScope[indexInScopeArray] = ValueSwitchOnOffSwitch;
     startUpdating(ValueSwitchOnOffSwitch);
     startStopUpdatingGraph(ValueSwitchOnOffSwitch);
 });
 
 $('#ACDCcoupling').on("input", function () {
-    unitIndex = 4;
+    indexInScopeArray = 4;
     SwitchstateIndex = 1;
     ValueSwitchACDC = SwitchHandler(SwitchstateIndex);
-    ArrayToPico[unitIndex] = ValueSwitchACDC;
+    ArrayForScope[indexInScopeArray] = ValueSwitchACDC;
 });
 
 $('#channel').on("input", function () {
-    unitIndex = 5;
+    indexInScopeArray = 5;
     SwitchstateIndex = 2;
     ValueSwitchChannel = SwitchHandler(SwitchstateIndex);
-    ArrayToPico[unitIndex] = ValueSwitchChannel;
+    ArrayForScope[indexInScopeArray] = ValueSwitchChannel;
 });
 
 //code for the FFT
 function changeWindowStyle() {
+    indexInFFTArray = 0;
     let windowStyle = document.getElementById("window_style");
     let windowStyleValue = windowStyle.value;
-    console.log("windowStyleValue ", windowStyleValue);                                          // do something with the value of the changed window style
-}
+    ArrayForFFT[indexInFFTArray] = windowStyleValue;}
 
 $('#centreFrequencySlider').on("input change", function () {
-    unitIndex = 0;                                                          //change this to the correct index
+    indexInFFTArray = 1;
     var element = $('#centreFrequencySlider'),                              //change this when the real values are kwown
         value = element.val()
+    ArrayForFFT[indexInFFTArray] = value;                                     
     $('#centreFrequencySliderValue').text("Value : " + value + " Hz");
 });
 
 $('#bandwidthSlider').on("input change", function () {
-    unitIndex = 0;                                                          //change this to the correct index
+    indexInFFTArray = 2;
     var element = $('#bandwidthSlider'),                                    //change this when the real values are kwown
         value = element.val()
+    ArrayForFFT[indexInFFTArray] = value;                                     
     $('#bandwidthSliderValue').text("bandwidth : " + value);
 });
 
 $('#scanRateSlider').on("input change", function () {
-    unitIndex = 0;                                                          //change this to the correct index
+    indexInFFTArray = 3;
     var element = $('#scanRateSlider'),                                     //change this when the real values are kwown
         value = element.val()
+    ArrayForFFT[indexInFFTArray] = value;                                     
     $('#scanRateSliderValue').text("scan rate : " + value);
 });
 
 //code for the waveformgenerator
 function changeGolfStyle() {
+    indexInWFGArray = 0;
     let golfStyle = document.getElementById("golf_style");
     let golfStyleValue = golfStyle.value;
-    console.log("golfstyle: ", golfStyleValue);                                            // do something with the value of the changed golf style
+    ArrayForWaveform[indexInWFGArray] = golfStyleValue;
 }
 $('#frequencySlider').on("input change", function () {
-    unitIndex = 0;                                                          //change this to the correct index
+    indexInWFGArray = 1;
     var element = $('#frequencySlider'),                                    //change this when the real values are kwown
         value = element.val()
+    ArrayForWaveform[indexInWFGArray] = value;
     $('#frequencySliderValue').text("Value : " + value + " Hz");
 });
 
 $('#dutycycleSlider').on("input change", function () {
-    unitIndex = 2;                                                          //change this to the correct index
+    indexInWFGArray = 2;
     var element = $('#dutycycleSlider'),                                    //change this when the real values are kwown
         value = element.val()
+    ArrayForWaveform[indexInWFGArray] = value;
     $('#dutycycleSliderValue').text("Value : " + value + " %");
-    ArrayToPico[unitIndex] = value;
 });
