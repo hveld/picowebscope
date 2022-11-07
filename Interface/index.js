@@ -1,6 +1,6 @@
 ArrayForScope = [100, 10, 0, 0, 0, 0]
-ArrayForFFT = ["uniform", 0,0,0]
-ArrayForWaveform = ["sinus", 0,0]
+ArrayForFFT = ["uniform", 0, 0, 0]
+ArrayForWaveform = ["sinus", 0, 0]
 var arraySin = [];
 var delayBetweenCalls = 20;
 
@@ -34,13 +34,14 @@ class graph {
             this.tickSpace = 0;
         this.width = this.width * 0.6;
         this.height = this.height * 0.6;
-        this.updateGraphWithAxes();
-    }
-
-    updateGraphWithAxes() {
-        this.removeGraph()
+        this.graphLines = [];
         this.createAxes(ArrayForScope[0], ArrayForScope[1]);
         this.drawLinesInGraph();
+        this.updateGraph();
+    }
+
+    updateGraph() {
+        this.removeLine()
         this.drawLine()
     }
 
@@ -109,7 +110,6 @@ class graph {
             maxY = 300;
         var x1, x2, y1, y2 = 0;
         //stationary function
-
         for (var i = 0; i < arraySin.length - 1; i++) {
             x1 = this.Conversion(arraySin[i].x, minX, maxX, 'x');
             y1 = this.Conversion(arraySin[i].y, minY, maxY, 'y');
@@ -123,10 +123,18 @@ class graph {
                 .attr("y2", y2)
                 .style("stroke", "rgb(0,255,0)")
                 .style("stroke-width", strokeWidth);
+            this.graphLines.push(this.graph_line);
         }
     }
     removeGraph() {
         d3.select("svg").remove();
+    }
+    removeLine() {
+        console.log(this.graphLines.length);
+        for (var i = 0; i < this.graphLines.length; i++) {
+            this.graphLines[i].remove();
+        }
+        this.graphLines = [];
     }
     Conversion(Value, minDomain, maxDomain, axis) {
         var range = this.width;
@@ -159,12 +167,11 @@ function startUpdating(Value) {
     }
 }
 
-function updateoscilloscopePlotter() {
-    graphPlotter.updateGraphWithAxes();
-}
 function startStopUpdatingGraph(Value) {
     if (Value == true) {
-        updateGraphID = setInterval(updateoscilloscopePlotter, delayBetweenCalls);
+        updateGraphID = setInterval(function () {
+            graphPlotter.updateGraph()
+        }, delayBetweenCalls);
     } else {
         clearInterval(updateGraphID); //stop updating graph
     }
@@ -220,7 +227,7 @@ function FFTScopeChange() {
 
 //submit button
 function submit() {
-//send the data to the esp
+    //send the data to the esp
     console.log("submit button pressed");
     console.log(ArrayForScope);
     console.log(ArrayForFFT);
@@ -281,13 +288,14 @@ function changeWindowStyle() {
     indexInFFTArray = 0;
     let windowStyle = document.getElementById("window_style");
     let windowStyleValue = windowStyle.value;
-    ArrayForFFT[indexInFFTArray] = windowStyleValue;}
+    ArrayForFFT[indexInFFTArray] = windowStyleValue;
+}
 
 $('#centreFrequencySlider').on("input change", function () {
     indexInFFTArray = 1;
     var element = $('#centreFrequencySlider'),                              //change this when the real values are kwown
         value = element.val()
-    ArrayForFFT[indexInFFTArray] = value;                                     
+    ArrayForFFT[indexInFFTArray] = value;
     $('#centreFrequencySliderValue').text("Value : " + value + " Hz");
 });
 
@@ -295,7 +303,7 @@ $('#bandwidthSlider').on("input change", function () {
     indexInFFTArray = 2;
     var element = $('#bandwidthSlider'),                                    //change this when the real values are kwown
         value = element.val()
-    ArrayForFFT[indexInFFTArray] = value;                                     
+    ArrayForFFT[indexInFFTArray] = value;
     $('#bandwidthSliderValue').text("bandwidth : " + value);
 });
 
@@ -303,7 +311,7 @@ $('#scanRateSlider').on("input change", function () {
     indexInFFTArray = 3;
     var element = $('#scanRateSlider'),                                     //change this when the real values are kwown
         value = element.val()
-    ArrayForFFT[indexInFFTArray] = value;                                     
+    ArrayForFFT[indexInFFTArray] = value;
     $('#scanRateSliderValue').text("scan rate : " + value);
 });
 
