@@ -1,7 +1,7 @@
 ArrayForScope = [100, 10, 0, 0, 0, 0]
 ArrayForFFT = ["uniform", 0, 0, 0]
 ArrayForWaveform = ["sinus", 0, 0]
-var arraySin = [];
+var dataArray = [];
 var delayBetweenCalls = 20;
 
 const socket = new WebSocket('ws://localhost:8000');
@@ -17,32 +17,28 @@ function keep_alive() {
 }
 
 socket.addEventListener('message', function (event) {
-    arraySin.push(JSON.parse(event.data))             //for sending data 1 by one
-    //arraySin = JSON.parse(event.data).data          //for sending data once
-    if (arraySin.length >= 360) {
-        arraySin.length = 0
+    dataArray.push(JSON.parse(event.data))             //for sending data 1 by one
+    //dataArray = JSON.parse(event.data).data          //for sending data once
+    if (dataArray.length >= 360) {
+        dataArray.length = 0
     }
 });
-
-class graph {
-    constructor() {
+class Graph{
+    constructor(nameOfChart,widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
+        this.nameOfChart = nameOfChart;
+        this.widthRatio = widthRatio;
+        this.heightRatio = heightRatio;
+        this.xAxisName = XaxisName;
+        this.yAxisName = YaxisName;
+        this.numTicksX = numTicksX;
+        this.numTicksY = numTicksY;
+        this.tickSpace = 0;
         this.margin = { top: 100, right: 100, bottom: 100, left: 100 },
             this.width = window.innerHeight * 2 - this.margin.left - this.margin.right,
             this.height = window.innerHeight - this.margin.top - this.margin.bottom,
-            this.numTicksX = 10,
-            this.numTicksY = 8,
-            this.tickSpace = 0;
-        this.width = this.width * 0.6;
-        this.height = this.height * 0.6;
-        this.graphLines = [];
-        this.createAxes(ArrayForScope[0], ArrayForScope[1]);
-        this.drawLinesInGraph();
-        this.updateGraph();
-    }
-
-    updateGraph() {
-        this.removeLine()
-        this.drawLine()
+        this.width = this.width * this.widthRatio;
+        this.height = this.height * this.heightRatio;
+        this.graphPoints = [];
     }
 
     createAxes(axisNumberOnX, axisNumberOnY) {
@@ -52,23 +48,23 @@ class graph {
         var x = d3.scaleLinear()             //calculate numbers for the x axis
             .range([0, this.width])
             .domain([0, this.numTicksX * axisNumberOnX])
-        this.x = x;
-        this.y = y;
+        this.xAxis = x;
+        this.YAxis = y;
         return;
     }
 
     drawLinesInGraph() {
-        this.svg = d3.select("#chart").append("svg")
+        this.svg = d3.select("#Chart").append("svg")                                                                  // change this to the name of the chart?                         
             .attr("width", this.width + this.margin.left + this.margin.right)
             .attr("height", this.height + this.margin.top + this.margin.bottom)
             .style("filter", "url(#I)")
             .append("g")
             .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
-
+        
         this.svg.append("g")                             //draws lines vertically and numbers x-axis
             .attr("class", "x axis")
             .attr("transform", "translate(0," + this.height + ")")
-            .call(d3.axisBottom(this.x).tickSize(-this.height).ticks(this.numTicksY))
+            .call(d3.axisBottom(this.xAxis).tickSize(-this.height).ticks(this.numTicksY))
             .selectAll("line")
             .style("stroke-dasharray", function (d, i) {
                 var dashArray = []
@@ -82,10 +78,11 @@ class graph {
             .attr("x", this.width / 2)
             .attr("y", this.height + 30)
             .style("text-anchor", "middle")
-            .text("us/div");
+            .text(this.xAxisName);
+
         this.svg.append("g")                             //draws lines horizontally and numbers y-axis
             .attr("class", "y axis")
-            .call(d3.axisLeft(this.y).tickSize(-this.width).ticks(this.numTicksX))
+            .call(d3.axisLeft(this.YAxis).tickSize(-this.width).ticks(this.numTicksX))
             .selectAll("line")
             .style("stroke-dasharray", function (d, i) {
                 var dashArray = []
@@ -100,43 +97,27 @@ class graph {
             .attr("x", -50)
             .attr("y", this.height / 2)
             .style("text-anchor", "middle")
-            .text("mV/div");
+            .text(this.yAxisName);
     }
-    async drawLine() {
-        var strokeWidth = 1,
-            minX = 0,                               //this needs to be auatomated later. These values must be given from the esp.
-            maxX = 360,
-            minY = 60,
-            maxY = 300;
-        var x1, x2, y1, y2 = 0;
-        //stationary function
-        for (var i = 0; i < arraySin.length - 1; i++) {
-            x1 = this.Conversion(arraySin[i].x, minX, maxX, 'x');
-            y1 = this.Conversion(arraySin[i].y, minY, maxY, 'y');
-            x2 = this.Conversion(arraySin[i + 1].x, minX, maxX, 'x');
-            y2 = this.Conversion(arraySin[i + 1].y, minY, maxY, 'y');
-            this.graph_line = this.svg.append("line")
-                .attr("id", "plotted_line")
-                .attr("x1", x1)
-                .attr("y1", y1)
-                .attr("x2", x2)
-                .attr("y2", y2)
-                .style("stroke", "rgb(0,255,0)")
-                .style("stroke-width", strokeWidth);
-            this.graphLines.push(this.graph_line);
-        }
+
+    updateAxes(AxisNumberOnX, AxisNumberOnY) {
+        this.removeGraph();
+        this.createAxes(AxisNumberOnX,AxisNumberOnY);
+        this.drawLinesInGraph();
+        this.updateGraph();
     }
+
     removeGraph() {
         d3.select("svg").remove();
     }
-    removeLine() {
-        console.log(this.graphLines.length);
-        for (var i = 0; i < this.graphLines.length; i++) {
-            this.graphLines[i].remove();
+    removeDataPoints() {
+        for (var i = 0; i < this.graphPoints.length; i++) {
+            this.graphPoints[i].remove();
         }
-        this.graphLines = [];
+        this.graphPoints = [];
     }
-    Conversion(Value, minDomain, maxDomain, axis) {
+
+    Conversion(Value, minDomain, maxDomain, axis) {                                         //can be deleted later
         var range = this.width;
         if (axis == 'y')
             range = this.height;
@@ -149,8 +130,87 @@ class graph {
         return xy(Value)
     }
 }
+class OscilloscopeGraph extends Graph{
+    constructor(nameOfChart,widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
+        super(nameOfChart,widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY);
+        this.createAxes(ArrayForScope[0], ArrayForScope[1]);        
+        this.drawLinesInGraph();
+        this.updateGraph();
+    }
+    updateGraph() {
+        this.removeDataPoints()
+        this.drawLine()
+    }
+
+    async drawLine() {
+        var strokeWidth = 1,
+            minX = 0,                               //this needs to be auatomated later. These values must be given from the esp.
+            maxX = 360,
+            minY = 60,
+            maxY = 300;
+        var x1, x2, y1, y2 = 0;
+        //stationary function
+        for (var i = 0; i < dataArray.length - 1; i++) {
+            x1 = this.Conversion(dataArray[i].x, minX, maxX, 'x');
+            y1 = this.Conversion(dataArray[i].y, minY, maxY, 'y');
+            x2 = this.Conversion(dataArray[i + 1].x, minX, maxX, 'x');
+            y2 = this.Conversion(dataArray[i + 1].y, minY, maxY, 'y');
+            this.graph_line = this.svg.append("line")
+                .attr("id", "plotted_line")
+                .attr("x1", x1)
+                .attr("y1", y1)
+                .attr("x2", x2)
+                .attr("y2", y2)
+                .style("stroke", "rgb(0,255,0)")
+                .style("stroke-width", strokeWidth);
+            this.graphPoints.push(this.graph_line);
+        }
+    }
+}
+
+class FFTGraph extends Graph{
+    constructor(nameOfChart,widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
+        super(nameOfChart,widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY);
+        this.createAxes(ArrayForScope[0], ArrayForScope[1]);        
+        this.drawLinesInGraph();
+        this.updateGraph();
+    }
+    updateGraph() {
+        this.removeDataPoints()
+        this.drawLine()
+    }
+
+    async drawLine() {
+        var strokeWidth = 1,
+            minX = 0,                               //this needs to be auatomated later. These values must be given from the esp.
+            maxX = 360,
+            minY = 60,
+            maxY = 300;
+        var x1, x2, y1, y2 = 0;
+        //stationary function
+        for (var i = 0; i < dataArray.length - 1; i++) {
+            y1 = this.Conversion(dataArray[i].x, minX, maxX, 'x');
+            x1 = this.Conversion(dataArray[i].y, minY, maxY, 'y');
+            y2 = this.Conversion(dataArray[i + 1].x, minX, maxX, 'x');
+            x2 = this.Conversion(dataArray[i + 1].y, minY, maxY, 'y');
+            this.graph_line = this.svg.append("line")
+                .attr("id", "plotted_line")
+                .attr("x1", x1)
+                .attr("y1", y1)
+                .attr("x2", x2)
+                .attr("y2", y2)
+                .style("stroke", "rgb(0,255,0)")
+                .style("stroke-width", strokeWidth);
+            this.graphPoints.push(this.graph_line);
+        }
+    }
+}
+
 //code that handles all the graph stuff
-graphPlotter = new graph();
+oscilloscopePlotter = new OscilloscopeGraph("#ScopeChart",0.6,0.6,"us/div","mV/div",10,8);
+FFTPlotter = new FFTGraph("FFTChart",0.6,0.6,"Hz","mS/s",10,8);
+FFTPlotter.removeGraph();
+graphPlotter = oscilloscopePlotter;
 var refreshSentDataId;
 var keepAliveId;
 var updateGraphID;
@@ -219,9 +279,15 @@ function FFTScopeChange() {
     if (scope.style.display === "none") {
         scope.style.display = "block";
         FFT.style.display = "none";
+        graphPlotter.removeGraph();
+        graphPlotter = oscilloscopePlotter;
+        graphPlotter.updateAxes(ArrayForScope[0], ArrayForScope[1]);
     } else {
         scope.style.display = "none";
         FFT.style.display = "block";
+        graphPlotter.removeGraph();
+        graphPlotter = FFTPlotter;
+        graphPlotter.updateAxes(ArrayForScope[0], ArrayForScope[1]);
     }
 }
 
@@ -232,6 +298,7 @@ function submit() {
     console.log(ArrayForScope);
     console.log(ArrayForFFT);
     console.log(ArrayForWaveform);
+    graphPlotter.updateAxes(ArrayForScope[0], ArrayForScope[1]);              //change this later to fft or scope array depending on which one is selected
 }
 
 // part of code that checks for all the fields and buttons for the oscilloscope.
