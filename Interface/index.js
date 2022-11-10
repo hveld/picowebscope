@@ -60,7 +60,7 @@ class Graph{
             .style("filter", "url(#I)")
             .append("g")
             .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
-        
+
         this.svg.append("g")                             //draws lines vertically and numbers x-axis
             .attr("class", "x axis")
             .attr("transform", "translate(0," + this.height + ")")
@@ -198,15 +198,28 @@ class FFTGraph extends Graph{
     }
 
     createAxes(axisNumberOnX, axisNumberOnY) {
-        var y = d3.scaleLinear()            //calculate numbers for the y axis
-            .range([this.height, 0])
-            .domain([0, this.numTicksY * axisNumberOnY])
-        var x = d3.scaleLinear()             //calculate numbers for the x axis
-            .range([0, this.width])
-            .domain([0, this.numTicksX * axisNumberOnX])
+        var y = d3.scaleLog()            //calculate numbers for the y axis
+            .range([this.height, 1])
+            .domain([1, this.numTicksY * axisNumberOnY])
+        var x = d3.scaleLog()             //calculate numbers for the x axis
+            .range([1, this.width])
+            .domain([1, this.numTicksX * axisNumberOnX])
         this.xAxis = x;
         this.YAxis = y;
         return;
+    }
+
+    Conversion(Value, minDomain, maxDomain, axis) {                                         //can be deleted later
+        var range = this.width;
+        if (axis == 'y')
+            range = this.height;
+        else {
+            range = this.width
+        }
+        var xy = d3.scaleLog()
+            .range([0, range])
+            .domain([minDomain, maxDomain])
+        return xy(Value)
     }
 
     async drawLine() {
