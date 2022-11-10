@@ -18,8 +18,8 @@ function keep_alive() {
 
 socket.addEventListener('message', function (event) {
     dataArray.push(JSON.parse(event.data))             //for sending data 1 by one
-    //dataArray = JSON.parse(event.data).data          //for sending data once
-    if (dataArray.length >= 360) {
+    //dataArray = JSON.parse(event.data).data
+    if (dataArray.length > 360) {
         dataArray.length = 0
     }
 });

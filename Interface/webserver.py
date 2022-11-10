@@ -20,7 +20,7 @@ async def handler(websocket, path):
             #reply = f"Data recieved as:  {data}!"
             data = data_out["data"][i]
             i += 1
-            if i >= 360:
+            if i >= len(data_out["data"]):
                 i = 0
             reply = json.dumps(data)
             await websocket.send(reply)
