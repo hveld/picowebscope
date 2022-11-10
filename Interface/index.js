@@ -2,7 +2,7 @@ ArrayForScope = [100, 10, 0, 0, 0, 0]
 ArrayForFFT = ["uniform", 0, 0, 0]
 ArrayForWaveform = ["sinus", 0, 0]
 var dataArray = [];
-var delayBetweenCalls = 20;
+var delayBetweenCalls = 50;
 
 const socket = new WebSocket('ws://localhost:8000');
 socket.addEventListener('open', function (event) {
@@ -133,6 +133,8 @@ class Graph{
 class OscilloscopeGraph extends Graph{
     constructor(nameOfChart,widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
         super(nameOfChart,widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY);
+        this.maxX = this.numTicksX*100;
+        this.minY = this.numTicksY*10;
         this.createAxes(ArrayForScope[0], ArrayForScope[1]);        
         this.drawLinesInGraph();
         this.updateGraph();
@@ -142,28 +144,43 @@ class OscilloscopeGraph extends Graph{
         this.drawLine()
     }
 
+    updateMinMax(maxX, minY){
+        this.maxX = maxX*this.numTicksX;
+        this.minY = minY*this.numTicksY;
+    }
+
     async drawLine() {
         var strokeWidth = 1,
             minX = 0,                               //this needs to be auatomated later. These values must be given from the esp.
-            maxX = 360,
-            minY = 60,
-            maxY = 300;
+            maxX = this.maxX,           
+            minY = this.minY,                        
+            maxY = 0;
         var x1, x2, y1, y2 = 0;
         //stationary function
         for (var i = 0; i < dataArray.length - 1; i++) {
-            x1 = this.Conversion(dataArray[i].x, minX, maxX, 'x');
-            y1 = this.Conversion(dataArray[i].y, minY, maxY, 'y');
-            x2 = this.Conversion(dataArray[i + 1].x, minX, maxX, 'x');
-            y2 = this.Conversion(dataArray[i + 1].y, minY, maxY, 'y');
-            this.graph_line = this.svg.append("line")
-                .attr("id", "plotted_line")
-                .attr("x1", x1)
-                .attr("y1", y1)
-                .attr("x2", x2)
-                .attr("y2", y2)
-                .style("stroke", "rgb(0,255,0)")
-                .style("stroke-width", strokeWidth);
-            this.graphPoints.push(this.graph_line);
+            y1 = dataArray[i].y;
+            y2 = dataArray[i+1].y;
+            if (y1 < minY){
+                x1 = this.Conversion(dataArray[i].x, minX, maxX, 'x');
+                y1 = this.Conversion(dataArray[i].y, minY, maxY, 'y');
+                x2 = this.Conversion(dataArray[i + 1].x, minX, maxX, 'x');
+                if (y2 > minY){
+                    y2 = minY;
+                    y2 = this.Conversion(y2, minY, maxY, 'y');
+                }else{
+                    y2 = this.Conversion(dataArray[i + 1].y, minY, maxY, 'y');
+                    
+                }
+                this.graph_line = this.svg.append("line")
+                    .attr("id", "plotted_line")
+                    .attr("x1", x1)
+                    .attr("y1", y1)
+                    .attr("x2", x2)
+                    .attr("y2", y2)
+                    .style("stroke", "rgb(0,255,0)")
+                    .style("stroke-width", strokeWidth);
+                this.graphPoints.push(this.graph_line);
+            }
         }
     }
 }
@@ -176,15 +193,27 @@ class FFTGraph extends Graph{
         this.updateGraph();
     }
     updateGraph() {
-        this.removeDataPoints()
-        this.drawLine()
+        // this.removeDataPoints()
+        // this.drawLine()
+    }
+
+    createAxes(axisNumberOnX, axisNumberOnY) {
+        var y = d3.scaleLinear()            //calculate numbers for the y axis
+            .range([this.height, 0])
+            .domain([0, this.numTicksY * axisNumberOnY])
+        var x = d3.scaleLinear()             //calculate numbers for the x axis
+            .range([0, this.width])
+            .domain([0, this.numTicksX * axisNumberOnX])
+        this.xAxis = x;
+        this.YAxis = y;
+        return;
     }
 
     async drawLine() {
         var strokeWidth = 1,
             minX = 0,                               //this needs to be auatomated later. These values must be given from the esp.
             maxX = 360,
-            minY = 60,
+            minY = 0,
             maxY = 300;
         var x1, x2, y1, y2 = 0;
         //stationary function
@@ -299,6 +328,7 @@ function submit() {
     console.log(ArrayForFFT);
     console.log(ArrayForWaveform);
     graphPlotter.updateAxes(ArrayForScope[0], ArrayForScope[1]);              //change this later to fft or scope array depending on which one is selected
+    graphPlotter.updateMinMax(ArrayForScope[0], ArrayForScope[1]);
 }
 
 // part of code that checks for all the fields and buttons for the oscilloscope.
