@@ -256,6 +256,12 @@ graphPlotter = oscilloscopePlotter;
 var refreshSentDataId;
 var keepAliveId;
 var updateGraphID;
+var elements = document.querySelectorAll( 'body > *' );
+var elems = document.body.getElementsByTagName("*");
+$('*').on('mouseup', function (e) {
+        e.stopImmediatePropagation();
+        console.log("mouse up");
+    });
 
 function startUpdating(Value) {
     var delay = 55000;
