@@ -23,8 +23,8 @@ socket.addEventListener('message', function (event) {
         dataArray.length = 0
     }
 });
-class Graph{
-    constructor(nameOfChart,widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
+class Graph {
+    constructor(nameOfChart, widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
         this.nameOfChart = nameOfChart;
         this.widthRatio = widthRatio;
         this.heightRatio = heightRatio;
@@ -36,7 +36,7 @@ class Graph{
         this.margin = { top: 100, right: 100, bottom: 100, left: 100 },
             this.width = window.innerHeight * 2 - this.margin.left - this.margin.right,
             this.height = window.innerHeight - this.margin.top - this.margin.bottom,
-        this.width = this.width * this.widthRatio;
+            this.width = this.width * this.widthRatio;
         this.height = this.height * this.heightRatio;
         this.graphPoints = [];
     }
@@ -102,7 +102,7 @@ class Graph{
 
     updateAxes(AxisNumberOnX, AxisNumberOnY) {
         this.removeGraph();
-        this.createAxes(AxisNumberOnX,AxisNumberOnY);
+        this.createAxes(AxisNumberOnX, AxisNumberOnY);
         this.drawLinesInGraph();
         this.updateGraph();
     }
@@ -130,12 +130,12 @@ class Graph{
         return xy(Value)
     }
 }
-class OscilloscopeGraph extends Graph{
-    constructor(nameOfChart,widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
-        super(nameOfChart,widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY);
-        this.maxX = this.numTicksX*100;
-        this.minY = this.numTicksY*10;
-        this.createAxes(ArrayForScope[0], ArrayForScope[1]);        
+class OscilloscopeGraph extends Graph {
+    constructor(nameOfChart, widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
+        super(nameOfChart, widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY);
+        this.maxX = this.numTicksX * 100;
+        this.minY = this.numTicksY * 10;
+        this.createAxes(ArrayForScope[0], ArrayForScope[1]);
         this.drawLinesInGraph();
         this.updateGraph();
     }
@@ -144,31 +144,31 @@ class OscilloscopeGraph extends Graph{
         this.drawLine()
     }
 
-    updateMinMax(maxX, minY){
-        this.maxX = maxX*this.numTicksX;
-        this.minY = minY*this.numTicksY;
+    updateMinMax(maxX, minY) {
+        this.maxX = maxX * this.numTicksX;
+        this.minY = minY * this.numTicksY;
     }
 
     async drawLine() {
         var strokeWidth = 1,
             minX = 0,                               //this needs to be auatomated later. These values must be given from the esp.
-            maxX = this.maxX,           
-            minY = this.minY,                        
+            maxX = this.maxX,
+            minY = this.minY,
             maxY = 0;
         var x1, x2, y1, y2 = 0;
         //stationary function
         for (var i = 0; i < dataArray.length - 1; i++) {
             y1 = dataArray[i].y;
-            y2 = dataArray[i+1].y;
-            if (y1 < minY){
+            y2 = dataArray[i + 1].y;
+            if (y1 < minY) {
                 x1 = this.Conversion(dataArray[i].x, minX, maxX, 'x');
                 y1 = this.Conversion(dataArray[i].y, minY, maxY, 'y');
                 x2 = this.Conversion(dataArray[i + 1].x, minX, maxX, 'x');
-                if (y2 > minY){
+                if (y2 > minY) {
                     y2 = minY;
                     y2 = this.Conversion(y2, minY, maxY, 'y');
-                }else{
-                    y2 = this.Conversion(dataArray[i + 1].y, minY, maxY, 'y');   
+                } else {
+                    y2 = this.Conversion(dataArray[i + 1].y, minY, maxY, 'y');
                 }
                 this.graph_line = this.svg.append("line")
                     .attr("id", "plotted_line")
@@ -184,9 +184,9 @@ class OscilloscopeGraph extends Graph{
     }
 }
 
-class FFTGraph extends Graph{
-    constructor(nameOfChart,widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
-        super(nameOfChart,widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY);
+class FFTGraph extends Graph {
+    constructor(nameOfChart, widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
+        super(nameOfChart, widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY);
         this.createAxes(1024, 15000000);                        // change this later        
         this.drawLinesInGraph();
         this.updateGraph();
@@ -199,7 +199,7 @@ class FFTGraph extends Graph{
     createAxes(axisNumberOnX, axisNumberOnY) {
         var y = d3.scaleLog()            //calculate numbers for the y axis
             .range([this.height, 1])
-            .domain([1,axisNumberOnY])
+            .domain([1, axisNumberOnY])
         var x = d3.scaleLog()             //calculate numbers for the x axis
             .range([1, this.width])
             .domain([1, axisNumberOnX])
@@ -248,17 +248,17 @@ class FFTGraph extends Graph{
 }
 
 //code that handles all the graph stuff
-oscilloscopePlotter = new OscilloscopeGraph("#ScopeChart",0.6,0.6,"us/div","mV/div",10,8);
-FFTPlotter = new FFTGraph("FFTChart",0.6,0.6,"Hz","mS/s",10,8);
+oscilloscopePlotter = new OscilloscopeGraph("#ScopeChart", 0.6, 0.6, "us/div", "mV/div", 10, 8);
+FFTPlotter = new FFTGraph("FFTChart", 0.6, 0.6, "Hz", "mS/s", 10, 8);
 FFTPlotter.removeGraph();
 graphPlotter = oscilloscopePlotter;
 var refreshSentDataId;
 var keepAliveId;
 var updateGraphID;
 $('*').on('mouseup', function (e) {
-        e.stopImmediatePropagation();
-        console.log("mouse up");
-    });
+    e.stopImmediatePropagation();
+    console.log("mouse up");
+});
 
 function startUpdating(Value) {
     var delay = 55000;
@@ -291,7 +291,7 @@ function RangeSliderHandler(SliderId) {
         arrayForTimePerDivision = [100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000, 2000000, 5000000]
         unitArray = ["us/div", "s/div", "ms/div"];
     } else if (SliderId == "VoltagePerDivisionSlider") {
-        arrayForTimePerDivision = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000]
+        arrayForTimePerDivision = [10, 100, 500, 1000, 2000, 5000]
         unitArray = ["mV/div", "V/div"];
     }
     var returnValue = arrayForTimePerDivision[value]
@@ -351,9 +351,8 @@ function submit() {
         tmp1 = 1023;
         tmp2 = 15000000;
     }
-        // tmp1 = ArrayForFFT[0];
-        // tmp2 = ArrayForFFT[1];
-    }
+    // tmp1 = ArrayForFFT[0];
+    // tmp2 = ArrayForFFT[1];
     graphPlotter.updateAxes(tmp1, tmp2);              //change this later to fft or scope array depending on which one is selected
     graphPlotter.updateMinMax(ArrayForScope[0], ArrayForScope[1]);
 }
