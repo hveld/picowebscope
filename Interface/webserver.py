@@ -4,11 +4,11 @@ import asyncio
 import websockets
 import json
 # create handler for each connection
-f = open('data.json')
+f = open('fft_data.json')
 
 data_out = json.load(f)
 i = 0
-
+print("Starting server")
 async def handler(websocket, path):
     i = 0
     while True:

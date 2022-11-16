@@ -19,7 +19,7 @@ function keep_alive() {
 socket.addEventListener('message', function (event) {
     dataArray.push(JSON.parse(event.data))             //for sending data 1 by one
     //dataArray = JSON.parse(event.data).data
-    if (dataArray.length > 360) {
+    if (dataArray.length > 1023) {
         dataArray.length = 0
     }
 });
@@ -168,8 +168,7 @@ class OscilloscopeGraph extends Graph{
                     y2 = minY;
                     y2 = this.Conversion(y2, minY, maxY, 'y');
                 }else{
-                    y2 = this.Conversion(dataArray[i + 1].y, minY, maxY, 'y');
-                    
+                    y2 = this.Conversion(dataArray[i + 1].y, minY, maxY, 'y');   
                 }
                 this.graph_line = this.svg.append("line")
                     .attr("id", "plotted_line")
@@ -188,22 +187,22 @@ class OscilloscopeGraph extends Graph{
 class FFTGraph extends Graph{
     constructor(nameOfChart,widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
         super(nameOfChart,widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY);
-        this.createAxes(ArrayForScope[0], ArrayForScope[1]);        
+        this.createAxes(1024, 15000000);                        // change this later        
         this.drawLinesInGraph();
         this.updateGraph();
     }
     updateGraph() {
-        // this.removeDataPoints()
-        // this.drawLine()
+        this.removeDataPoints()
+        this.drawLine()
     }
 
     createAxes(axisNumberOnX, axisNumberOnY) {
         var y = d3.scaleLog()            //calculate numbers for the y axis
             .range([this.height, 1])
-            .domain([1, this.numTicksY * axisNumberOnY])
+            .domain([1,axisNumberOnY])
         var x = d3.scaleLog()             //calculate numbers for the x axis
             .range([1, this.width])
-            .domain([1, this.numTicksX * axisNumberOnX])
+            .domain([1, axisNumberOnX])
         this.xAxis = x;
         this.YAxis = y;
         return;
@@ -217,22 +216,22 @@ class FFTGraph extends Graph{
             range = this.width
         }
         var xy = d3.scaleLog()
-            .range([0, range])
+            .range([1, range])
             .domain([minDomain, maxDomain])
         return xy(Value)
     }
 
     async drawLine() {
         var strokeWidth = 1,
-            minX = 0,                               //this needs to be auatomated later. These values must be given from the esp.
-            maxX = 360,
-            minY = 0,
-            maxY = 300;
+            minX = 1,                               //this needs to be auatomated later. These values must be given from the esp.
+            maxX = 1024,
+            minY = 15000000,
+            maxY = 1;
         var x1, x2, y1, y2 = 0;
         //stationary function
         for (var i = 0; i < dataArray.length - 1; i++) {
-            y1 = this.Conversion(dataArray[i].x, minX, maxX, 'x');
-            x1 = this.Conversion(dataArray[i].y, minY, maxY, 'y');
+            x1 = this.Conversion(dataArray[i].x, minX, maxX, 'x');
+            y1 = this.Conversion(dataArray[i].y, minY, maxY, 'y');
             y2 = this.Conversion(dataArray[i + 1].x, minX, maxX, 'x');
             x2 = this.Conversion(dataArray[i + 1].y, minY, maxY, 'y');
             this.graph_line = this.svg.append("line")
@@ -256,8 +255,6 @@ graphPlotter = oscilloscopePlotter;
 var refreshSentDataId;
 var keepAliveId;
 var updateGraphID;
-var elements = document.querySelectorAll( 'body > *' );
-var elems = document.body.getElementsByTagName("*");
 $('*').on('mouseup', function (e) {
         e.stopImmediatePropagation();
         console.log("mouse up");
@@ -335,7 +332,7 @@ function FFTScopeChange() {
         FFT.style.display = "block";
         graphPlotter.removeGraph();
         graphPlotter = FFTPlotter;
-        graphPlotter.updateAxes(ArrayForScope[0], ArrayForScope[1]);
+        graphPlotter.updateAxes(1024, 15000000);                    //change this values so the sliders work for the FFT
     }
 }
 
@@ -346,7 +343,18 @@ function submit() {
     console.log(ArrayForScope);
     console.log(ArrayForFFT);
     console.log(ArrayForWaveform);
-    graphPlotter.updateAxes(ArrayForScope[0], ArrayForScope[1]);              //change this later to fft or scope array depending on which one is selected
+    var scope = docmument.getElementById("scope");
+    if (scope.style.display === "block") {
+        tmp1 = ArrayForScope[0];
+        tmp2 = ArrayForScope[1];
+    } else {
+        tmp1 = 1023;
+        tmp2 = 15000000;
+    }
+        // tmp1 = ArrayForFFT[0];
+        // tmp2 = ArrayForFFT[1];
+    }
+    graphPlotter.updateAxes(tmp1, tmp2);              //change this later to fft or scope array depending on which one is selected
     graphPlotter.updateMinMax(ArrayForScope[0], ArrayForScope[1]);
 }
 
