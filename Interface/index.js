@@ -19,7 +19,7 @@ function keep_alive() {
 socket.addEventListener('message', function (event) {
     dataArray.push(JSON.parse(event.data))             //for sending data 1 by one
     //dataArray = JSON.parse(event.data).data
-    if (dataArray.length > 360) {
+    if (dataArray.length > 1024) {
         dataArray.length = 0
     }
 });
@@ -140,8 +140,8 @@ class OscilloscopeGraph extends Graph {
         this.updateGraph();
     }
     updateGraph() {
-        this.removeDataPoints()
-        this.drawLine()
+        // this.removeDataPoints()
+        // this.drawLine()
     }
 
     updateMinMax(maxX, minY) {
@@ -158,7 +158,7 @@ class OscilloscopeGraph extends Graph {
         var x1, x2, y1, y2 = 0;
         //stationary function
         for (var i = 0; i < dataArray.length - 1; i++) {
-            y1 = dataArray[i].y;
+            y1 = dataArray[i].y;                                                                        //may be possible to make this more readable with scale clamping
             y2 = dataArray[i + 1].y;
             if (y1 < minY) {
                 x1 = this.Conversion(dataArray[i].x, minX, maxX, 'x');
@@ -169,7 +169,7 @@ class OscilloscopeGraph extends Graph {
                     y2 = this.Conversion(y2, minY, maxY, 'y');
                 } else {
                     y2 = this.Conversion(dataArray[i + 1].y, minY, maxY, 'y');
-                }
+                }   
                 this.graph_line = this.svg.append("line")
                     .attr("id", "plotted_line")
                     .attr("x1", x1)
@@ -192,8 +192,13 @@ class FFTGraph extends Graph {
         this.updateGraph();
     }
     updateGraph() {
-        // this.removeDataPoints()
-        // this.drawLine()
+        this.removeDataPoints()
+        this.drawLine()
+    }
+
+    updateMinMax(maxX, minY) {
+        // this.maxX = maxX * this.numTicksX;
+        // this.minY = minY * this.numTicksY;
     }
 
     createAxes(axisNumberOnX, axisNumberOnY) {
@@ -222,6 +227,8 @@ class FFTGraph extends Graph {
     }
 
     async drawLine() {
+        var tmpXaxis = this.xAxis;
+        var TmpYaxis = this.YAxis;
         var strokeWidth = 1,
             minX = 1,                               //this needs to be auatomated later. These values must be given from the esp.
             maxX = 1024,
@@ -230,18 +237,27 @@ class FFTGraph extends Graph {
         var x1, x2, y1, y2 = 0;
         //stationary function
         for (var i = 0; i < dataArray.length - 1; i++) {
+
             x1 = this.Conversion(dataArray[i].x, minX, maxX, 'x');
             y1 = this.Conversion(dataArray[i].y, minY, maxY, 'y');
             y2 = this.Conversion(dataArray[i + 1].x, minX, maxX, 'x');
             x2 = this.Conversion(dataArray[i + 1].y, minY, maxY, 'y');
-            this.graph_line = this.svg.append("line")
-                .attr("id", "plotted_line")
-                .attr("x1", x1)
-                .attr("y1", y1)
-                .attr("x2", x2)
-                .attr("y2", y2)
-                .style("stroke", "rgb(0,255,0)")
-                .style("stroke-width", strokeWidth);
+           console.log(x1,x2);
+            this.graph_line = this.svg.append("rect")
+                    .attr("x", x1)
+                    .attr("y", y1)
+                    .attr("width", (x2-x1))
+                    //console.log(height - y(d.Value));
+                    .attr("height", this.height - y1)
+                    .attr("fill", "#69b3a2");
+            // this.graph_line = this.svg.append("line")
+            //     .attr("id", "plotted_line")
+            //     .attr("x1", x1)
+            //     .attr("y1", y1)
+            //     .attr("x2", x2)
+            //     .attr("y2", y2)
+            //     .style("stroke", "rgb(0,255,0)")
+            //     .style("stroke-width", strokeWidth);
             this.graphPoints.push(this.graph_line);
         }
     }
@@ -268,9 +284,10 @@ $('*').on('mouseup', function (e) {
     } else {
         tmp1 = 1023;
         tmp2 = 15000000;
+        // tmp1 = ArrayForFFT[0];
+        // tmp2 = ArrayForFFT[1];
     }
-    // tmp1 = ArrayForFFT[0];
-    // tmp2 = ArrayForFFT[1];
+
     graphPlotter.updateAxes(tmp1, tmp2);              //change this later to fft or scope array depending on which one is selected
     graphPlotter.updateMinMax(ArrayForScope[0], ArrayForScope[1]);});
 
