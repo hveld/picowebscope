@@ -19,7 +19,7 @@ function keep_alive() {
 socket.addEventListener('message', function (event) {
     dataArray.push(JSON.parse(event.data))             //for sending data 1 by one
     //dataArray = JSON.parse(event.data).data
-    if (dataArray.length > 1023) {
+    if (dataArray.length > 360) {
         dataArray.length = 0
     }
 });
@@ -192,8 +192,8 @@ class FFTGraph extends Graph {
         this.updateGraph();
     }
     updateGraph() {
-        this.removeDataPoints()
-        this.drawLine()
+        // this.removeDataPoints()
+        // this.drawLine()
     }
 
     createAxes(axisNumberOnX, axisNumberOnY) {
@@ -258,7 +258,21 @@ var updateGraphID;
 $('*').on('mouseup', function (e) {
     e.stopImmediatePropagation();
     console.log("mouse up");
-});
+    console.log(ArrayForScope);
+    console.log(ArrayForFFT);
+    console.log(ArrayForWaveform);
+    var scope = document.getElementById("scope");
+    if (scope.style.display === "block") {
+        tmp1 = ArrayForScope[0];
+        tmp2 = ArrayForScope[1];
+    } else {
+        tmp1 = 1023;
+        tmp2 = 15000000;
+    }
+    // tmp1 = ArrayForFFT[0];
+    // tmp2 = ArrayForFFT[1];
+    graphPlotter.updateAxes(tmp1, tmp2);              //change this later to fft or scope array depending on which one is selected
+    graphPlotter.updateMinMax(ArrayForScope[0], ArrayForScope[1]);});
 
 function startUpdating(Value) {
     var delay = 55000;
@@ -334,27 +348,6 @@ function FFTScopeChange() {
         graphPlotter = FFTPlotter;
         graphPlotter.updateAxes(1024, 15000000);                    //change this values so the sliders work for the FFT
     }
-}
-
-//submit button
-function submit() {
-    //send the data to the esp
-    console.log("submit button pressed");
-    console.log(ArrayForScope);
-    console.log(ArrayForFFT);
-    console.log(ArrayForWaveform);
-    var scope = docmument.getElementById("scope");
-    if (scope.style.display === "block") {
-        tmp1 = ArrayForScope[0];
-        tmp2 = ArrayForScope[1];
-    } else {
-        tmp1 = 1023;
-        tmp2 = 15000000;
-    }
-    // tmp1 = ArrayForFFT[0];
-    // tmp2 = ArrayForFFT[1];
-    graphPlotter.updateAxes(tmp1, tmp2);              //change this later to fft or scope array depending on which one is selected
-    graphPlotter.updateMinMax(ArrayForScope[0], ArrayForScope[1]);
 }
 
 // part of code that checks for all the fields and buttons for the oscilloscope.
