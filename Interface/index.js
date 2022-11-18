@@ -379,14 +379,18 @@ $('#TriggerSlider').on("input change", function () {
     var voltage = (value / 100) * ArrayForScope[1]
     $('#TriggerSliderValue').text("Value in percentage: " + value + " %");
     $('#TriggerSliderValueVoltage').text("Value in voltage: " + voltage);
-    ArrayForScope[indexInScopeArray] = value;
+    ArrayForScope[indexInScopeArray] = parseInt(value);
 });
 
 $('#on-off-switch').on("input", function () {
     indexInScopeArray = 3;
     SwitchstateIndex = 0;
     ValueSwitchOnOffSwitch = SwitchHandler(SwitchstateIndex);
-    ArrayForScope[indexInScopeArray] = ValueSwitchOnOffSwitch;
+    if (ValueSwitchOnOffSwitch == true) {
+        ArrayForScope[indexInScopeArray] = 1;
+    } else {
+        ArrayForScope[indexInScopeArray] = 0;
+    }
     startUpdating(ValueSwitchOnOffSwitch);
     startStopUpdatingGraph(ValueSwitchOnOffSwitch);
 });
@@ -395,7 +399,11 @@ $('#ACDCcoupling').on("input", function () {
     indexInScopeArray = 4;
     SwitchstateIndex = 1;
     ValueSwitchACDC = SwitchHandler(SwitchstateIndex);
-    ArrayForScope[indexInScopeArray] = ValueSwitchACDC;
+    if (ValueSwitchACDC == true) {
+        ArrayForScope[indexInScopeArray] = 1;
+    } else {
+        ArrayForScope[indexInScopeArray] = 0;
+    }
 });
 
 $('#channel').on("input", function () {
