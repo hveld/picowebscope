@@ -17,12 +17,13 @@ function keep_alive() {
 }
 
 socket.addEventListener('message', function (event) {
-    dataArray.push(JSON.parse(event.data))             //for sending data 1 by one
-    //dataArray = JSON.parse(event.data).data
-    if (dataArray.length > 1024) {
-        dataArray.length = 0
-    }
+    dataArray = JSON.parse(event.data).data
+    // dataArray.push(JSON.parse(event.data))             //for sending data 1 by one
+    // if (dataArray.length > 1024) {
+    //     dataArray.length = 0
+    // }
 });
+
 class Graph {
     constructor(nameOfChart, widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
         this.nameOfChart = nameOfChart;
@@ -140,8 +141,8 @@ class OscilloscopeGraph extends Graph {
         this.updateGraph();
     }
     updateGraph() {
-        // this.removeDataPoints()
-        // this.drawLine()
+        this.removeDataPoints()
+        this.drawLine()
     }
 
     updateMinMax(maxX, minY) {
@@ -169,7 +170,7 @@ class OscilloscopeGraph extends Graph {
                     y2 = this.Conversion(y2, minY, maxY, 'y');
                 } else {
                     y2 = this.Conversion(dataArray[i + 1].y, minY, maxY, 'y');
-                }   
+                }
                 this.graph_line = this.svg.append("line")
                     .attr("id", "plotted_line")
                     .attr("x1", x1)
@@ -205,6 +206,8 @@ class FFTGraph extends Graph {
         var y = d3.scaleLog()            //calculate numbers for the y axis
             .range([this.height, 1])
             .domain([1, axisNumberOnY])
+        //scaleLinear
+        // var x = d3.scaleLinear()            //calculate numbers for the x axis
         var x = d3.scaleLog()             //calculate numbers for the x axis
             .range([1, this.width])
             .domain([1, axisNumberOnX])
@@ -234,32 +237,17 @@ class FFTGraph extends Graph {
             maxX = 1024,
             minY = 15000000,
             maxY = 1;
-        var x1, x2, y1, y2 = 0;
         //stationary function
-        for (var i = 0; i < dataArray.length - 1; i++) {
-
-            x1 = this.Conversion(dataArray[i].x, minX, maxX, 'x');
-            y1 = this.Conversion(dataArray[i].y, minY, maxY, 'y');
-            y2 = this.Conversion(dataArray[i + 1].x, minX, maxX, 'x');
-            x2 = this.Conversion(dataArray[i + 1].y, minY, maxY, 'y');
-           console.log(x1,x2);
-            this.graph_line = this.svg.append("rect")
-                    .attr("x", x1)
-                    .attr("y", y1)
-                    .attr("width", (x2-x1))
-                    //console.log(height - y(d.Value));
-                    .attr("height", this.height - y1)
-                    .attr("fill", "#69b3a2");
-            // this.graph_line = this.svg.append("line")
-            //     .attr("id", "plotted_line")
-            //     .attr("x1", x1)
-            //     .attr("y1", y1)
-            //     .attr("x2", x2)
-            //     .attr("y2", y2)
-            //     .style("stroke", "rgb(0,255,0)")
-            //     .style("stroke-width", strokeWidth);
-            this.graphPoints.push(this.graph_line);
-        }
+        var height = this.height;
+        this.svg.selectAll("mybar")
+            .data(dataArray)
+            .enter()
+            .append("rect")
+            .attr("x", function (d) { return tmpXaxis(d.x); })
+            .attr("y", function (d) { return TmpYaxis(d.y); })
+            .attr("width", function (d) { return (tmpXaxis(d.x + 1) - tmpXaxis(d.x)) })
+            .attr("height", function (d) { return height - TmpYaxis(d.y); })
+            .attr("fill", "#69b3a2")
     }
 }
 
@@ -289,7 +277,8 @@ $('*').on('mouseup', function (e) {
     }
 
     graphPlotter.updateAxes(tmp1, tmp2);              //change this later to fft or scope array depending on which one is selected
-    graphPlotter.updateMinMax(ArrayForScope[0], ArrayForScope[1]);});
+    graphPlotter.updateMinMax(ArrayForScope[0], ArrayForScope[1]);
+});
 
 function startUpdating(Value) {
     var delay = 55000;
