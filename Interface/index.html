@@ -92,7 +92,13 @@
                 <span class="slider round"></span>
             </label>
             <label>channel 1 or 2</label>
-
+            <br>
+            <br>
+            <label class="switch">
+                <input type="checkbox" id="edge">
+                <span class="slider round"></span>
+            </label>
+            <label>Falling edge/ rising edge</label>
             <label class="Time per division">
                 <p>Time per division</p>
                 <input id="timePerDivisionSlider" type="range" min="0" max="14" value="0" step="1">
@@ -103,7 +109,7 @@
 
             <label class="Voltage per division">
                 <p>Voltage per division</p>
-                <input id="VoltagePerDivisionSlider" type="range" min="0" max="5" value="0" step="1" >
+                <input id="VoltagePerDivisionSlider" type="range" min="0" max="5" value="0" step="1">
                 <div class="range_output">
                     <output name="VoltagePerDivisonOutput" id="VoltagePerDivisionSliderValue">Value: 10 mV/div</output>
                 </div>
@@ -119,7 +125,7 @@
             </div>
         </div>
         <div class="grid-child state">
-                Placeholder for the state
+            Placeholder for the state
         </div>
         <div class="grid-child" id="Chart"></div>
         <!-- <div class="grid-child fft" id="FFTChart"></div> -->

@@ -413,6 +413,13 @@ $('#channel').on("input", function () {
     ArrayForScope[indexInScopeArray] = ValueSwitchChannel;
 });
 
+$('#edge').on("input", function () {
+    indexInScopeArray = 6;
+    SwitchstateIndex = 3;
+    ValueSwitchEdge = SwitchHandler(SwitchstateIndex);
+    ArrayForScope[indexInScopeArray] = ValueSwitchEdge;
+});
+
 //code for the FFT
 function changeWindowStyle() {
     indexInFFTArray = 0;
