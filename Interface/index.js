@@ -1,6 +1,6 @@
-ArrayForScope = [100, 10, 0, 0, 0, 0]
-ArrayForFFT = ["uniform", 0, 0, 0]
-ArrayForWaveform = ["sinus", 0, 0]
+ArrayForScope = [100, 10, 0, 0, 0, 0, 0]
+ArrayForFFT = [2, 0, 0, 0]
+ArrayForWaveform = [0, 0, 0]
 var dataArray = [];
 var delayBetweenCalls = 50;
 
@@ -386,11 +386,7 @@ $('#on-off-switch').on("input", function () {
     indexInScopeArray = 3;
     SwitchstateIndex = 0;
     ValueSwitchOnOffSwitch = SwitchHandler(SwitchstateIndex);
-    if (ValueSwitchOnOffSwitch == true) {
-        ArrayForScope[indexInScopeArray] = 1;
-    } else {
-        ArrayForScope[indexInScopeArray] = 0;
-    }
+        ArrayForScope[indexInScopeArray] = ValueSwitchOnOffSwitch  ? 1 : 0;
     startUpdating(ValueSwitchOnOffSwitch);
     startStopUpdatingGraph(ValueSwitchOnOffSwitch);
 });
@@ -399,33 +395,35 @@ $('#ACDCcoupling').on("input", function () {
     indexInScopeArray = 4;
     SwitchstateIndex = 1;
     ValueSwitchACDC = SwitchHandler(SwitchstateIndex);
-    if (ValueSwitchACDC == true) {
-        ArrayForScope[indexInScopeArray] = 1;
-    } else {
-        ArrayForScope[indexInScopeArray] = 0;
-    }
+        ArrayForScope[indexInScopeArray] = ValueSwitchACDC  ? 1 : 0;
+    
 });
 
 $('#channel').on("input", function () {
     indexInScopeArray = 5;
     SwitchstateIndex = 2;
     ValueSwitchChannel = SwitchHandler(SwitchstateIndex);
-    ArrayForScope[indexInScopeArray] = ValueSwitchChannel;
+    ArrayForScope[indexInScopeArray] = ValueSwitchChannel ? 1 : 0;
 });
 
 $('#edge').on("input", function () {
     indexInScopeArray = 6;
     SwitchstateIndex = 3;
     ValueSwitchEdge = SwitchHandler(SwitchstateIndex);
-    ArrayForScope[indexInScopeArray] = ValueSwitchEdge;
+    ArrayForScope[indexInScopeArray] = ValueSwitchEdge ? 1 : 0;
 });
 
 //code for the FFT
 function changeWindowStyle() {
+    var windowStyleDict =  {
+        "flattop": 0,
+        "hanning": 1,
+        "uniform": 2
+      }; 
     indexInFFTArray = 0;
     let windowStyle = document.getElementById("window_style");
     let windowStyleValue = windowStyle.value;
-    ArrayForFFT[indexInFFTArray] = windowStyleValue;
+    ArrayForFFT[indexInFFTArray] = windowStyleDict[windowStyleValue];
 }
 
 $('#centreFrequencySlider').on("input change", function () {
@@ -454,10 +452,15 @@ $('#scanRateSlider').on("input change", function () {
 
 //code for the waveformgenerator
 function changeGolfStyle() {
+    var golfStyleDict =  {
+        "sinus": 0,
+        "blok": 1,
+        "triangle": 2
+      }; 
     indexInWFGArray = 0;
     let golfStyle = document.getElementById("golf_style");
     let golfStyleValue = golfStyle.value;
-    ArrayForWaveform[indexInWFGArray] = golfStyleValue;
+    ArrayForWaveform[indexInWFGArray] = golfStyleDict[golfStyleValue];
 }
 $('#frequencySlider').on("input change", function () {
     indexInWFGArray = 1;
