@@ -4,25 +4,45 @@ ArrayForWaveform = [0, 0, 0]
 var dataArray = [];
 var delayBetweenCalls = 1000;
 
-const socket = new WebSocket('ws://localhost:8000');
-socket.addEventListener('open', function (event) {
-    socket.send('Connection Established');
-});
+const gateway = 'ws://localhost:8000';        //for the python webserver
+// var gateway = `ws://${window.location.hostname}/ws`;     //for the esp webserver
+
+var websocket;
+window.addEventListener('load', onload);
+
+function onload(event) {
+    initWebSocket();
+}
+
+function initWebSocket() {
+    //console.log(window.location.hostname);
+    console.log('Trying to open a WebSocket connection…');
+    websocket = new WebSocket(gateway);
+    websocket.onopen = onOpen;
+    websocket.onclose = onClose;
+    websocket.onmessage = onMessage;
+}
 function Send_data() {
-    socket.send("request_data");
+    websocket.send("request_data");
 }
-
 function keep_alive() {
-    socket.send("keep_alive")
+    websocket.send("keep_alive")
 }
-
-socket.addEventListener('message', function (event) {
+function onOpen(event) {
+    console.log('Connection opened');
+}
+function onClose(event) {
+    console.log('Connection closed');
+    setTimeout(initWebSocket, 2000);
+  }
+function onMessage(event) {
+    console.log(event.data);
     dataArray = JSON.parse(event.data).data
     // dataArray.push(JSON.parse(event.data))             //for sending data 1 by one
     // if (dataArray.length > 1024) {
     //     dataArray.length = 0
     // }
-});
+}
 
 class Graph {
     constructor(nameOfChart, widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
@@ -268,38 +288,50 @@ FFTScopeChange();
 var refreshSentDataId;
 var keepAliveId;
 var updateGraphID;
+var currentPage = 1;
+
 $('*').on('mouseup', function (e) {
     e.stopImmediatePropagation();
-    console.log("mouse up");
-    console.log(ArrayForScope);
-    console.log(ArrayForFFT);
-    console.log(ArrayForWaveform);
+    // console.log("mouse up");
+    // console.log(ArrayForScope);
+    // console.log(ArrayForFFT);
+    // console.log(ArrayForWaveform);
     var scope = document.getElementById("scope");
     if (scope.style.display === "block") {
-        tmp1 = ArrayForScope[0];
-        tmp2 = ArrayForScope[1];
+         tmp1 = ArrayForScope[0];
+         tmp2 = ArrayForScope[1];
     } else {
         tmp1 = 1023;
         tmp2 = 15000000;
         // tmp1 = ArrayForFFT[0];
         // tmp2 = ArrayForFFT[1];
     }
-
-    graphPlotter.updateAxes(tmp1, tmp2);              //change this later to fft or scope array depending on which one is selected
-    graphPlotter.updateMinMax(ArrayForScope[0], ArrayForScope[1]);
-});
-
-function startUpdating(Value) {
-    var delay = 55000;
-    if (Value == true) {
-        clearInterval(keepAliveId);
-        refreshSentDataId = setInterval(Send_data, delayBetweenCalls);
-    } else {
-        clearInterval(refreshSentDataId)
-        delay = 55000;
-        keepAliveId = setInterval(keep_alive, delay);
+     graphPlotter.updateAxes(tmp1, tmp2);              //change this later to fft or scope array depending on which one is selected
+     graphPlotter.updateMinMax(ArrayForScope[0], ArrayForScope[1]);
+    if(currentPage ==1 ){
+        //split array into json objects
+        var data = JSON.stringify({
+        "Ossilloscope": 1,//ossilloscope is 1
+        "TimePerDiv": ArrayForScope[0],
+        "VoltagePerDiv": ArrayForScope[1],
+        "Trigger": ArrayForScope[2],
+        "OnOff": ArrayForScope[3],
+        "ACDC": ArrayForScope[4],
+        "Channel": ArrayForScope[5]});
+        console.log(JSON.parse(data));
+        websocket.send(data);
     }
-}
+    if(currentPage ==2){
+        var data = JSON.stringify({
+        "FFT": 1, //FFT is 2
+        "Windowstyle": ArrayForFFT[0],
+        "centreFrequency": ArrayForFFT[1],
+        "bandwith": ArrayForFFT[2],
+        "scanRate": ArrayForFFT[3],});
+        console.log(JSON.parse(data));
+        websocket.send(data);
+    }
+});
 
 function startStopUpdatingGraph(Value) {
     if (Value == true) {
@@ -307,7 +339,6 @@ function startStopUpdatingGraph(Value) {
             graphPlotter.updateGraph()
         }, delayBetweenCalls);
     } else {
-        graphPlotter.removeDataPoints();
         clearInterval(updateGraphID); //stop updating graph
     }
 }
@@ -321,12 +352,15 @@ function FFTScopeChange() {
         graphPlotter.removeGraph();
         graphPlotter = oscilloscopePlotter;
         graphPlotter.updateAxes(ArrayForScope[0], ArrayForScope[1]);
+        currentPage = 1;
+
     } else {
         scope.style.display = "none";
         FFT.style.display = "block";
         graphPlotter.removeGraph();
         graphPlotter = FFTPlotter;
         graphPlotter.updateAxes(1024, 15000000);                    //change this values so the sliders work for the FFT
+        currentPage = 2;
     }
 }
 
@@ -372,7 +406,6 @@ $('#on-off-switch').on("input", function () {
     SwitchstateIndex = 0;
     ValueSwitchOnOffSwitch = SwitchHandler(SwitchstateIndex);
         ArrayForScope[indexInScopeArray] = ValueSwitchOnOffSwitch  ? 1 : 0;
-    startUpdating(ValueSwitchOnOffSwitch);
     startStopUpdatingGraph(ValueSwitchOnOffSwitch);
 });
 

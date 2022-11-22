@@ -34,7 +34,7 @@
 import asyncio
 import websockets
 import json
-# create handler for each connection
+
 f = open('fft_data.json')
 
 data_out = json.load(f)
