@@ -2,7 +2,7 @@ ArrayForScope = [100, 10, 0, 0, 0, 0, 0]
 ArrayForFFT = [2, 0, 0, 0]
 ArrayForWaveform = [0, 0, 0]
 var dataArray = [];
-var delayBetweenCalls = 50;
+var delayBetweenCalls = 1000;
 
 const socket = new WebSocket('ws://localhost:8000');
 socket.addEventListener('open', function (event) {
@@ -192,6 +192,15 @@ class FFTGraph extends Graph {
         this.drawLinesInGraph();
         this.updateGraph();
     }
+
+    removeDataPoints(){
+        this.svg.selectAll("rect").remove();
+        console.log("remove");
+        setTimeout(function () {
+            console.log('remove2');    
+        }, 100000);
+
+    }
     updateGraph() {
         this.removeDataPoints()
         this.drawLine()
@@ -243,11 +252,11 @@ class FFTGraph extends Graph {
             .data(dataArray)
             .enter()
             .append("rect")
-            .attr("x", function (d) { return tmpXaxis(d.x); })
-            .attr("y", function (d) { return TmpYaxis(d.y); })
-            .attr("width", function (d) { return (tmpXaxis(d.x + 1) - tmpXaxis(d.x)) })
-            .attr("height", function (d) { return height - TmpYaxis(d.y); })
-            .attr("fill", "#69b3a2")
+                .attr("x", function (d) { return tmpXaxis(d.x); })
+                .attr("y", function (d) { return TmpYaxis(d.y); })
+                .attr("width", function (d) { return (tmpXaxis(d.x + 1) - tmpXaxis(d.x)) })
+                .attr("height", function (d) { return height - TmpYaxis(d.y); })
+                .attr("fill", "#69b3a2")
     }
 }
 
@@ -298,6 +307,7 @@ function startStopUpdatingGraph(Value) {
             graphPlotter.updateGraph()
         }, delayBetweenCalls);
     } else {
+        graphPlotter.removeDataPoints();
         clearInterval(updateGraphID); //stop updating graph
     }
 }
