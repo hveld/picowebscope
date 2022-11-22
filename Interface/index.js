@@ -254,8 +254,8 @@ class FFTGraph extends Graph {
 //code that handles all the graph stuff
 oscilloscopePlotter = new OscilloscopeGraph("#ScopeChart", 0.6, 0.6, "us/div", "mV/div", 10, 8);
 FFTPlotter = new FFTGraph("FFTChart", 0.6, 0.6, "Hz", "mS/s", 10, 8);
-FFTPlotter.removeGraph();
 graphPlotter = oscilloscopePlotter;
+FFTScopeChange();
 var refreshSentDataId;
 var keepAliveId;
 var updateGraphID;
@@ -302,6 +302,24 @@ function startStopUpdatingGraph(Value) {
     }
 }
 
+function FFTScopeChange() {
+    var scope = document.getElementById("scope");
+    var FFT = document.getElementById("FFT");
+    if (scope.style.display === "none") {
+        scope.style.display = "block";
+        FFT.style.display = "none";
+        graphPlotter.removeGraph();
+        graphPlotter = oscilloscopePlotter;
+        graphPlotter.updateAxes(ArrayForScope[0], ArrayForScope[1]);
+    } else {
+        scope.style.display = "none";
+        FFT.style.display = "block";
+        graphPlotter.removeGraph();
+        graphPlotter = FFTPlotter;
+        graphPlotter.updateAxes(1024, 15000000);                    //change this values so the sliders work for the FFT
+    }
+}
+
 //functions for the scope sliders and buttons
 function RangeSliderHandler(SliderId) {
     var element = $('#' + SliderId),
@@ -338,23 +356,16 @@ function SwitchHandler(SwitchstateIndex) {
     return switchStateArray[SwitchstateIndex];
 }
 
-function FFTScopeChange() {
-    var scope = document.getElementById("scope");
-    var FFT = document.getElementById("FFT");
-    if (scope.style.display === "none") {
-        scope.style.display = "block";
-        FFT.style.display = "none";
-        graphPlotter.removeGraph();
-        graphPlotter = oscilloscopePlotter;
-        graphPlotter.updateAxes(ArrayForScope[0], ArrayForScope[1]);
-    } else {
-        scope.style.display = "none";
-        FFT.style.display = "block";
-        graphPlotter.removeGraph();
-        graphPlotter = FFTPlotter;
-        graphPlotter.updateAxes(1024, 15000000);                    //change this values so the sliders work for the FFT
-    }
-}
+// 
+$('#on-off-switch').on("input", function () {
+    indexInScopeArray = 3;
+    SwitchstateIndex = 0;
+    ValueSwitchOnOffSwitch = SwitchHandler(SwitchstateIndex);
+        ArrayForScope[indexInScopeArray] = ValueSwitchOnOffSwitch  ? 1 : 0;
+    startUpdating(ValueSwitchOnOffSwitch);
+    startStopUpdatingGraph(ValueSwitchOnOffSwitch);
+});
+
 
 // part of code that checks for all the fields and buttons for the oscilloscope.
 $('#timePerDivisionSlider').on("input change", function () {
@@ -380,15 +391,6 @@ $('#TriggerSlider').on("input change", function () {
     $('#TriggerSliderValue').text("Value in percentage: " + value + " %");
     $('#TriggerSliderValueVoltage').text("Value in voltage: " + voltage);
     ArrayForScope[indexInScopeArray] = parseInt(value);
-});
-
-$('#on-off-switch').on("input", function () {
-    indexInScopeArray = 3;
-    SwitchstateIndex = 0;
-    ValueSwitchOnOffSwitch = SwitchHandler(SwitchstateIndex);
-        ArrayForScope[indexInScopeArray] = ValueSwitchOnOffSwitch  ? 1 : 0;
-    startUpdating(ValueSwitchOnOffSwitch);
-    startStopUpdatingGraph(ValueSwitchOnOffSwitch);
 });
 
 $('#ACDCcoupling').on("input", function () {
