@@ -37,10 +37,6 @@ function onClose(event) {
   }
 function onMessage(event) {
     dataArray = JSON.parse(event.data).data
-    // dataArray.push(JSON.parse(event.data))             //for sending data 1 by one
-    // if (dataArray.length > 1024) {
-    //     dataArray.length = 0
-    // }
 }
 
 class Graph {
@@ -472,21 +468,21 @@ $('#centreFrequencySlider').on("input change", function () {
     indexInFFTArray = 1;
     var element = $('#centreFrequencySlider'),                              //change this when the real values are kwown
         value = element.val()
-    ArrayForFFT[indexInFFTArray] = value;
+    ArrayForFFT[indexInFFTArray] = parseInt(value);
     $('#centreFrequencySliderValue').text("Value : " + value + " Hz");
 });
 
 $('#DbPerDivisionSlider').on("input change", function () {
     indexInFFTArray = 2;
     ValueDbPerDivision = RangeSliderHandler("DbPerDivisionSlider");
-    ArrayForFFT[indexInFFTArray] = ValueDbPerDivision;
+    ArrayForFFT[indexInFFTArray] = parseInt(ValueDbPerDivision);
 });
 
 $('#scanRateSlider').on("input change", function () {
     indexInFFTArray = 3;
     var element = $('#scanRateSlider'),                                     //change this when the real values are kwown
         value = element.val()
-    ArrayForFFT[indexInFFTArray] = value;
+    ArrayForFFT[indexInFFTArray] = parseInt(value);
     $('#scanRateSliderValue').text("scan rate : " + value);
 });
 
@@ -506,7 +502,7 @@ $('#frequencySlider').on("input change", function () {
     indexInWFGArray = 1;
     var element = $('#frequencySlider'),                                    //change this when the real values are kwown
         value = element.val()
-    ArrayForWaveform[indexInWFGArray] = value;
+    ArrayForWaveform[indexInWFGArray] = parseInt(value);
     $('#frequencySliderValue').text("Value : " + value + " Hz");
 });
 
@@ -514,6 +510,6 @@ $('#dutycycleSlider').on("input change", function () {
     indexInWFGArray = 2;
     var element = $('#dutycycleSlider'),                                    //change this when the real values are kwown
         value = element.val()
-    ArrayForWaveform[indexInWFGArray] = value;
+    ArrayForWaveform[indexInWFGArray] = parseInt(value);
     $('#dutycycleSliderValue').text("Value : " + value + " %");
 });
