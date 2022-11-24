@@ -383,7 +383,7 @@ function RangeSliderHandler(SliderId) {
     return returnValue;
 }
 
-switchStateArray = [false, false]
+switchStateArray = [false, false, false,false]
 function SwitchHandler(SwitchstateIndex) {
     if (switchStateArray[SwitchstateIndex] == false) {
         switchStateArray[SwitchstateIndex] = true;
