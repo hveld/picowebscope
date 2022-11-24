@@ -36,7 +36,6 @@ function onClose(event) {
     setTimeout(initWebSocket, 2000);
   }
 function onMessage(event) {
-    console.log(event.data);
     dataArray = JSON.parse(event.data).data
     // dataArray.push(JSON.parse(event.data))             //for sending data 1 by one
     // if (dataArray.length > 1024) {
@@ -215,11 +214,6 @@ class FFTGraph extends Graph {
 
     removeDataPoints(){
         this.svg.selectAll("rect").remove();
-        console.log("remove");
-        setTimeout(function () {
-            console.log('remove2');    
-        }, 100000);
-
     }
     updateGraph() {
         this.removeDataPoints()
@@ -372,9 +366,12 @@ function RangeSliderHandler(SliderId) {
     if (SliderId == "timePerDivisionSlider") {
         arrayForTimePerDivision = [100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000, 2000000, 5000000]
         unitArray = ["us/div", "s/div", "ms/div"];
-    } else if (SliderId == "VoltagePerDivisionSlider") {
+    } else if (SliderId == "VoltagePerDivisionSlider" || SliderId == "DbPerDivisionSlider") {
         arrayForTimePerDivision = [10, 100, 500, 1000, 2000, 5000]
-        unitArray = ["mV/div", "V/div"];
+        if (SliderId == "VoltagePerDivisionSlider")
+            unitArray = ["mV/div", "V/div"];
+        else
+            unitArray = ["mV", "V"];
     }
     var returnValue = arrayForTimePerDivision[value]
     var value = arrayForTimePerDivision[value]
@@ -479,12 +476,10 @@ $('#centreFrequencySlider').on("input change", function () {
     $('#centreFrequencySliderValue').text("Value : " + value + " Hz");
 });
 
-$('#bandwidthSlider').on("input change", function () {
+$('#DbPerDivisionSlider').on("input change", function () {
     indexInFFTArray = 2;
-    var element = $('#bandwidthSlider'),                                    //change this when the real values are kwown
-        value = element.val()
-    ArrayForFFT[indexInFFTArray] = value;
-    $('#bandwidthSliderValue').text("bandwidth : " + value);
+    ValueDbPerDivision = RangeSliderHandler("DbPerDivisionSlider");
+    ArrayForFFT[indexInFFTArray] = ValueDbPerDivision;
 });
 
 $('#scanRateSlider').on("input change", function () {

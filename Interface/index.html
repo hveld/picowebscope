@@ -38,29 +38,29 @@
         <div class="grid-child FFT" id="FFT">
             <button onclick="FFTScopeChange()">Oscilloscope</button>
             <label class="centreFrequency">
-                <p>centre frequency</p>
+                <p>Frequency for the FFT</p>
                 <!-- change the min max to the correct values -->
                 <input id="centreFrequencySlider" type="range" min="0" max="100" value="0" step="1">
                 <div class=" range_output">
                     <output name="centreFrequencyOutput" id="centreFrequencySliderValue">Value: 0 hz</output>
                 </div>
             </label>
-            <label class="bandwith per division">
-                <p>bandwith per division</p>
+            <label class="Db per division">
+                <p>Volt per division (in dB)</p>
                 <!-- change the min max to the correct values -->
-                <input id="bandwidthSlider" type="range" min="0" max="100" value="0" step="1">
+                <input id="DbPerDivisionSlider" type="range" min="0" max="5" value="0" step="1">
                 <div class=" range_output">
-                    <output name="dandwithOutput" id="bandwidthSliderValue">Value: 0</output>
+                    <output name="DbPerDivisionOutput" id="DbPerDivisionSliderValue">Value: 0 V</output>
                 </div>
             </label>
-            <label class="scan rate">
+            <!--<label class="scan rate">
                 <p>scan rate</p>
-                <!-- change the min max to the correct values -->
+                 change the min max to the correct values
                 <input id="scanRateSlider" type="range" min="0" max="100" value="0" step="1">
                 <div class=" range_output">
                     <output name="scanRateOutput" id="scanRateSliderValue">Value: 0</output>
                 </div>
-            </label>
+            </label>-->
             <form name="form1" id="form1">
                 window style: <select name="window_style" id="window_style" onchange="changeWindowStyle()">
                     <option value="flattop" selected="selected">flattop</option>
