@@ -279,6 +279,7 @@ class FFTGraph extends Graph {
         var TmpYaxis = this.YAxis;
         //stationary function
         var height = this.height;
+
         this.svg.selectAll("mybar")
             .data(dataArray)
             .enter()
@@ -303,6 +304,7 @@ var currentPage = 1;
 
 $('*').on('mouseup', function (e) {
     e.stopImmediatePropagation();
+    setTimeout(function () {
     var scope = document.getElementById("scope");
     if (scope.style.display === "block") {
          tmp1 = ArrayForScope[0];
@@ -333,9 +335,9 @@ $('*').on('mouseup', function (e) {
         "bandwith": ArrayForFFT[2],
         "scanRate": ArrayForFFT[3],});
     }
-    // console.log(JSON.parse(data));
+    console.log(JSON.parse(data));
     websocket.send(data);
-        
+    }, 50);
 });
 
 function startStopUpdatingGraph(Value) {
