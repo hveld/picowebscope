@@ -203,7 +203,7 @@ class OscilloscopeGraph extends Graph {
 class FFTGraph extends Graph {
     constructor(nameOfChart, widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
         super(nameOfChart, widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY);
-        this.createAxes(1024, 15000000);                        // change this later        
+        this.createAxes(ArrayForFFT[1], ArrayForFFT[2]);                        // change this later        
         this.drawLinesInGraph();
         this.updateGraph();
     }
@@ -216,12 +216,19 @@ class FFTGraph extends Graph {
         this.drawLine()
     }
 
-    updateMinMax(maxX, minY) {
-        // this.maxX = maxX * this.numTicksX;
-        // this.minY = minY * this.numTicksY;
+    updateMinMax(){
+        //do nothing
+    }
+
+    updateAxes(AxisNumberOnX, AxisNumberOnY) {
+        this.removeGraph();
+        this.createAxes(AxisNumberOnX* this.numTicksX, AxisNumberOnY*this.numTicksY);
+        this.drawLinesInGraph();
+        this.updateGraph();
     }
 
     createAxes(axisNumberOnX, axisNumberOnY) {
+        console.log(axisNumberOnX,axisNumberOnY);
         var y = d3.scaleLog()            //calculate numbers for the y axis
             .range([this.height, 1])
             .domain([1, axisNumberOnY])
@@ -251,11 +258,6 @@ class FFTGraph extends Graph {
     async drawLine() {
         var tmpXaxis = this.xAxis;
         var TmpYaxis = this.YAxis;
-        var strokeWidth = 1,
-            minX = 1,                               //this needs to be auatomated later. These values must be given from the esp.
-            maxX = 1024,
-            minY = 15000000,
-            maxY = 1;
         //stationary function
         var height = this.height;
         this.svg.selectAll("mybar")
@@ -291,10 +293,8 @@ $('*').on('mouseup', function (e) {
          tmp1 = ArrayForScope[0];
          tmp2 = ArrayForScope[1];
     } else {
-        tmp1 = 1023;
-        tmp2 = 15000000;
-        // tmp1 = ArrayForFFT[0];
-        // tmp2 = ArrayForFFT[1];
+        tmp1 = ArrayForFFT[1];
+        tmp2 = ArrayForFFT[2];
     }
      graphPlotter.updateAxes(tmp1, tmp2);              //change this later to fft or scope array depending on which one is selected
      graphPlotter.updateMinMax(ArrayForScope[0], ArrayForScope[1]);
@@ -349,7 +349,7 @@ function FFTScopeChange() {
         FFT.style.display = "block";
         graphPlotter.removeGraph();
         graphPlotter = FFTPlotter;
-        graphPlotter.updateAxes(1024, 15000000);                    //change this values so the sliders work for the FFT
+        graphPlotter.updateAxes(ArrayForFFT[1], ArrayForFFT[2]);
         currentPage = 2;
     }
 }
