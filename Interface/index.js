@@ -1,5 +1,5 @@
 ArrayForScope = [100, 10, 0, 0, 0, 0, 0]
-ArrayForFFT = [2, 0, 0, 0]
+ArrayForFFT = [2, 1, 10, 0]
 ArrayForWaveform = [0, 0, 0]
 var dataArray = [];
 var delayBetweenCalls = 1000;
@@ -242,7 +242,7 @@ class FFTGraph extends Graph {
 
     updateAxes(AxisNumberOnX, AxisNumberOnY) {
         this.removeGraph();
-        this.createAxes(AxisNumberOnX* this.numTicksX, AxisNumberOnY*this.numTicksY);
+        this.createAxes(AxisNumberOnX, AxisNumberOnY*this.numTicksY);
         this.drawLinesInGraph();
         this.updateGraph();
     }
@@ -293,7 +293,7 @@ class FFTGraph extends Graph {
 
 //code that handles all the graph stuff
 oscilloscopePlotter = new OscilloscopeGraph("#ScopeChart", 0.6, 0.6, "us/div", "mV/div", 10, 8);
-FFTPlotter = new FFTGraph("FFTChart", 0.6, 0.6, "Hz", "mS/s", 10, 8);
+FFTPlotter = new FFTGraph("FFTChart", 0.6, 0.6, "Hz", "V", 10, 8);
 graphPlotter = oscilloscopePlotter;
 FFTScopeChange();
 var refreshSentDataId;
@@ -333,7 +333,7 @@ $('*').on('mouseup', function (e) {
         "bandwith": ArrayForFFT[2],
         "scanRate": ArrayForFFT[3],});
     }
-    console.log(JSON.parse(data));
+    // console.log(JSON.parse(data));
     websocket.send(data);
         
 });
