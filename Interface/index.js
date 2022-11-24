@@ -56,6 +56,28 @@ class Graph {
     }
 
     createAxes(axisNumberOnX, axisNumberOnY) {
+    var unitArray = ["us/div", "s/div", "ms/div"];
+    var unit = unitArray[0];
+    if (Number.isInteger(axisNumberOnX / 10 ** 6)) {
+        unit = unitArray[unitArray.length - 2];
+        axisNumberOnX = axisNumberOnX / 10 ** 6;
+    } else if (Number.isInteger(axisNumberOnX / 10 ** 3)) {
+        unit = unitArray[unitArray.length - 1];
+        axisNumberOnX = axisNumberOnX / 10 ** 3;
+    }
+    this.xAxisName = unit;
+
+    unitArray = ["mV/div", "V/div"];
+    var unit = unitArray[0];
+    if (Number.isInteger(axisNumberOnY / 10 ** 6)) {
+        unit = unitArray[unitArray.length - 2];
+        axisNumberOnY = axisNumberOnY / 10 ** 6;
+    } else if (Number.isInteger(axisNumberOnY / 10 ** 3)) {
+        unit = unitArray[unitArray.length - 1];
+        axisNumberOnY = axisNumberOnY / 10 ** 3;
+    }
+    this.yAxisName = unit;
+
         var y = d3.scaleLinear()            //calculate numbers for the y axis
             .range([this.height, 0])
             .domain([0, this.numTicksY * axisNumberOnY])
@@ -83,8 +105,8 @@ class Graph {
             .style("stroke-dasharray", function (d, i) {
                 var dashArray = []
                 for (var k = 0; k < this.numTicksY; k += 1) {
-                    dashArray.push((this.height / this.numTicksY - (this.tickSpace / 2) - (k > 0 ? (this.tickSpace / 2) : 0)));
-                    dashArray.push(this.tickSpace)
+                     dashArray.push((this.height / this.numTicksY - (this.tickSpace / 2) - (k > 0 ? (this.tickSpace / 2) : 0)));
+                     dashArray.push(this.tickSpace)
                 }
                 return dashArray.join(",")
             })
