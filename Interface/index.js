@@ -9,6 +9,7 @@ const gateway = 'ws://localhost:8000';        //for the python webserver
 
 var websocket;
 window.addEventListener('load', onload);
+var ConnectionState = document.getElementById('ConnectionState');
 
 function onload(event) {
     initWebSocket();
@@ -16,7 +17,7 @@ function onload(event) {
 
 function initWebSocket() {
     //console.log(window.location.hostname);
-    console.log('Trying to open a WebSocket connection…');
+    ConnectionState.innerHTML = 'Establishing Connection...';
     websocket = new WebSocket(gateway);
     websocket.onopen = onOpen;
     websocket.onclose = onClose;
@@ -25,14 +26,12 @@ function initWebSocket() {
 function Send_data() {
     websocket.send("request_data");
 }
-function keep_alive() {
-    websocket.send("keep_alive")
-}
+
 function onOpen(event) {
-    console.log('Connection opened');
+    ConnectionState.innerHTML = 'Connection Opened';
 }
 function onClose(event) {
-    console.log('Connection closed');
+    ConnectionState.innerHTML = 'Connection Closed';
     setTimeout(initWebSocket, 2000);
   }
 function onMessage(event) {
