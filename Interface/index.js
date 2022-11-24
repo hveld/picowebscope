@@ -16,7 +16,6 @@ function onload(event) {
 }
 
 function initWebSocket() {
-    //console.log(window.location.hostname);
     ConnectionState.innerHTML = 'Establishing Connection...';
     websocket = new WebSocket(gateway);
     websocket.onopen = onOpen;
@@ -227,7 +226,6 @@ class FFTGraph extends Graph {
     }
 
     createAxes(axisNumberOnX, axisNumberOnY) {
-        console.log(axisNumberOnX,axisNumberOnY);
         var y = d3.scaleLog()            //calculate numbers for the y axis
             .range([this.height, 1])
             .domain([1, axisNumberOnY])
@@ -283,10 +281,6 @@ var currentPage = 1;
 
 $('*').on('mouseup', function (e) {
     e.stopImmediatePropagation();
-    // console.log("mouse up");
-    // console.log(ArrayForScope);
-    // console.log(ArrayForFFT);
-    // console.log(ArrayForWaveform);
     var scope = document.getElementById("scope");
     if (scope.style.display === "block") {
          tmp1 = ArrayForScope[0];
@@ -297,9 +291,10 @@ $('*').on('mouseup', function (e) {
     }
      graphPlotter.updateAxes(tmp1, tmp2);              //change this later to fft or scope array depending on which one is selected
      graphPlotter.updateMinMax(ArrayForScope[0], ArrayForScope[1]);
+     var data;
     if(currentPage ==1 ){
         //split array into json objects
-        var data = JSON.stringify({
+        data = JSON.stringify({
         "Ossilloscope": 1,//ossilloscope is 1
         "TimePerDiv": ArrayForScope[0],
         "VoltagePerDiv": ArrayForScope[1],
@@ -307,19 +302,18 @@ $('*').on('mouseup', function (e) {
         "OnOff": ArrayForScope[3],
         "ACDC": ArrayForScope[4],
         "Channel": ArrayForScope[5]});
-        console.log(JSON.parse(data));
-        websocket.send(data);
     }
     if(currentPage ==2){
-        var data = JSON.stringify({
+        data = JSON.stringify({
         "FFT": 1, //FFT is 2
         "Windowstyle": ArrayForFFT[0],
         "centreFrequency": ArrayForFFT[1],
         "bandwith": ArrayForFFT[2],
         "scanRate": ArrayForFFT[3],});
-        console.log(JSON.parse(data));
-        websocket.send(data);
     }
+    console.log(JSON.parse(data));
+    websocket.send(data);
+        
 });
 
 function startStopUpdatingGraph(Value) {
