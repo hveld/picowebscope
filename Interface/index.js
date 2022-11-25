@@ -279,14 +279,22 @@ class FFTGraph extends Graph {
         var TmpYaxis = this.YAxis;
         //stationary function
         var height = this.height;
-
         this.svg.selectAll("mybar")
             .data(dataArray)
             .enter()
             .append("rect")
                 .attr("x", function (d) { return tmpXaxis(d.x); })
                 .attr("y", function (d) { return TmpYaxis(d.y); })
-                .attr("width", function (d) { return (tmpXaxis(d.x + 1) - tmpXaxis(d.x)) })
+                // .attr("width", (tmpXaxis(d.x + 1) - tmpXaxis(d.x)))
+                .attr("width", function (d) { 
+                    try{
+                        var next = dataArray[dataArray.indexOf(d)+1];
+                        return (tmpXaxis(next.x) - tmpXaxis(d.x))
+                    }
+                      catch{
+                        //continue
+                      }
+                })
                 .attr("height", function (d) { return height - TmpYaxis(d.y); })
                 .attr("fill", "#69b3a2")
     }

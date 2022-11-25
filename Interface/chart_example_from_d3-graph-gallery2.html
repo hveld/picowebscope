@@ -64,8 +64,17 @@
         .append("rect")
         .attr("x", function (d) { return x(d.Country); })
         .attr("y", function (d) { return y(d.Value); })
-        .attr("width", function (d) { return (x(d.Country + 1) - x(d.Country)) })
-        //console.log(height - y(d.Value));
+        .attr("width", function (d) { 
+          // index = data.indexOf(d.Country);
+          // next = data[index + 1].Country;
+          try{
+            
+            return x(data[data.indexOf(d)+1]) - x(d.Country);
+          }
+          catch{
+            //continue
+          }
+        })
         .attr("height", function (d) { return height - y(d.Value); })
         .attr("fill", "#69b3a2")
     })
