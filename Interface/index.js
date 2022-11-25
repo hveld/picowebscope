@@ -105,8 +105,8 @@ class Graph {
             .style("stroke-dasharray", function (d, i) {
                 var dashArray = []
                 for (var k = 0; k < this.numTicksY; k += 1) {
-                     dashArray.push((this.height / this.numTicksY - (this.tickSpace / 2) - (k > 0 ? (this.tickSpace / 2) : 0)));
-                     dashArray.push(this.tickSpace)
+                    dashArray.push((this.height / this.numTicksY - (this.tickSpace / 2) - (k > 0 ? (this.tickSpace / 2) : 0)));
+                    dashArray.push(this.tickSpace)
                 }
                 return dashArray.join(",")
             })
@@ -194,17 +194,17 @@ class OscilloscopeGraph extends Graph {
         var x1, x2, y1, y2 = 0;
         //stationary function
         for (var i = 0; i < dataArray.length - 1; i++) {
-            y1 = dataArray[i].y;                                                                        //may be possible to make this more readable with scale clamping
-            y2 = dataArray[i + 1].y;
+            y1 = dataArray[i];                                                                        //may be possible to make this more readable with scale clamping
+            y2 = dataArray[i + 1];
             if (y1 < minY) {
-                x1 = this.Conversion(dataArray[i].x, minX, maxX, 'x');
-                y1 = this.Conversion(dataArray[i].y, minY, maxY, 'y');
-                x2 = this.Conversion(dataArray[i + 1].x, minX, maxX, 'x');
+                x1 = this.Conversion(i, minX, maxX, 'x');
+                y1 = this.Conversion(dataArray[i], minY, maxY, 'y');
+                x2 = this.Conversion(i + 1, minX, maxX, 'x');
                 if (y2 > minY) {
                     y2 = minY;
                     y2 = this.Conversion(y2, minY, maxY, 'y');
                 } else {
-                    y2 = this.Conversion(dataArray[i + 1].y, minY, maxY, 'y');
+                    y2 = this.Conversion(dataArray[i + 1], minY, maxY, 'y');
                 }
                 this.graph_line = this.svg.append("line")
                     .attr("id", "plotted_line")
@@ -337,9 +337,8 @@ $('*').on('mouseup', function (e) {
         "Trigger": ArrayForScope[6],
         "frequency": ArrayForWaveform[0],
         "dutyCycle": ArrayForWaveform[1],
-        "waveType": ArrayForWaveform[2]
-    });
-    }
+        "golfType": ArrayForWaveform[2]
+    });}
     if(currentPage ==2){
         data = JSON.stringify({
         "FFT": 2, //FFT is 2
@@ -350,12 +349,12 @@ $('*').on('mouseup', function (e) {
         // "scanRate": ArrayForFFT[3],
         "frequency": ArrayForWaveform[0],
         "dutyCycle": ArrayForWaveform[1],
-        "waveType": ArrayForWaveform[2],
+        "golfType": ArrayForWaveform[2],
     });
     }
-    console.log(JSON.parse(data));
-    websocket.send(data);
-    }, 50);
+        console.log(JSON.parse(data));
+        websocket.send(data);
+}, 50);
 });
 
 function startStopUpdatingGraph(Value) {
@@ -418,7 +417,7 @@ function RangeSliderHandler(SliderId) {
     return returnValue;
 }
 
-switchStateArray = [false, false, false,false]
+switchStateArray = [false, false, false, false]
 function SwitchHandler(SwitchstateIndex) {
     if (switchStateArray[SwitchstateIndex] == false) {
         switchStateArray[SwitchstateIndex] = true;
@@ -482,7 +481,6 @@ $('#TriggerSlider').on("input change", function () {
     $('#TriggerSliderValueVoltage').text("Value in voltage: " + voltage);
     ArrayForScope[indexInScopeArray] = parseInt(value);
 });
-
 
 //code for the FFT
 $('#centreFrequencySlider').on("input change", function () {
