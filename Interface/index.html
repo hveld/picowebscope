@@ -50,9 +50,16 @@
                 <!-- change the min max to the correct values -->
                 <input id="DbPerDivisionSlider" type="range" min="0" max="5" value="0" step="1">
                 <div class=" range_output">
-                    <output name="DbPerDivisionOutput" id="DbPerDivisionSliderValue">Value: 0 V</output>
+                    <output name="DbPerDivisionOutput" id="DbPerDivisionSliderValue">Value: 10 mV</output>
                 </div>
             </label>
+            <form name="form1" id="form1">
+                window style: <select name="window_style" id="window_style" onchange="changeWindowStyle()">
+                    <option value="flattop" selected="selected">flattop</option>
+                    <option value="hanning" selected="selected">hanning</option>
+                    <option value="uniform" selected="selected">uniform</option>
+                </select>
+            </form>
             <!--<label class="scan rate">
                 <p>scan rate</p>
                  change the min max to the correct values
@@ -61,13 +68,6 @@
                     <output name="scanRateOutput" id="scanRateSliderValue">Value: 0</output>
                 </div>
             </label>-->
-            <form name="form1" id="form1">
-                window style: <select name="window_style" id="window_style" onchange="changeWindowStyle()">
-                    <option value="flattop" selected="selected">flattop</option>
-                    <option value="hanning" selected="selected">hanning</option>
-                    <option value="uniform" selected="selected">uniform</option>
-                </select>
-            </form>
         </div>
 
         <div class="grid-child scope" id="scope">

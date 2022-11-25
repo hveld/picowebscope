@@ -1,5 +1,5 @@
-ArrayForScope = [100, 10, 0, 0, 0, 0, 0]
-ArrayForFFT = [2, 1, 10, 0]
+ArrayForScope = [0, 0, 0, 0,100, 10, 0, ]
+ArrayForFFT = [1, 10, 2, 0]
 ArrayForWaveform = [0, 0, 0]
 var dataArray = [];
 var delayBetweenCalls = 1000;
@@ -171,7 +171,7 @@ class OscilloscopeGraph extends Graph {
         super(nameOfChart, widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY);
         this.maxX = this.numTicksX * 100;
         this.minY = this.numTicksY * 10;
-        this.createAxes(ArrayForScope[0], ArrayForScope[1]);
+        this.createAxes(ArrayForScope[4], ArrayForScope[5]);
         this.drawLinesInGraph();
         this.updateGraph();
     }
@@ -223,7 +223,7 @@ class OscilloscopeGraph extends Graph {
 class FFTGraph extends Graph {
     constructor(nameOfChart, widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
         super(nameOfChart, widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY);
-        this.createAxes(ArrayForFFT[1], ArrayForFFT[2]);                        // change this later        
+        this.createAxes(ArrayForFFT[0], ArrayForFFT[1]);                        // change this later        
         this.drawLinesInGraph();
         this.updateGraph();
     }
@@ -308,40 +308,50 @@ FFTScopeChange();
 var refreshSentDataId;
 var keepAliveId;
 var updateGraphID;
-var currentPage = 1;
+var currentPage = 2;
 
 $('*').on('mouseup', function (e) {
     e.stopImmediatePropagation();
     setTimeout(function () {
     var scope = document.getElementById("scope");
     if (scope.style.display === "block") {
-         tmp1 = ArrayForScope[0];
-         tmp2 = ArrayForScope[1];
+         tmp1 = ArrayForScope[4];
+         tmp2 = ArrayForScope[5];
     } else {
-        tmp1 = ArrayForFFT[1];
-        tmp2 = ArrayForFFT[2];
+        tmp1 = ArrayForFFT[0];
+        tmp2 = ArrayForFFT[1];
     }
      graphPlotter.updateAxes(tmp1, tmp2);              //change this later to fft or scope array depending on which one is selected
-     graphPlotter.updateMinMax(ArrayForScope[0], ArrayForScope[1]);
+     graphPlotter.updateMinMax(ArrayForScope[4], ArrayForScope[5]);
      var data;
     if(currentPage ==1 ){
         //split array into json objects
         data = JSON.stringify({
         "Ossilloscope": 1,//ossilloscope is 1
-        "TimePerDiv": ArrayForScope[0],
-        "VoltagePerDiv": ArrayForScope[1],
-        "Trigger": ArrayForScope[2],
-        "OnOff": ArrayForScope[3],
-        "ACDC": ArrayForScope[4],
-        "Channel": ArrayForScope[5]});
+        "OnOff": ArrayForScope[0],
+        "ACDC": ArrayForScope[1],
+        "Channel": ArrayForScope[2],
+        "edge": ArrayForScope[3],
+        "TimePerDiv": ArrayForScope[4],
+        "VoltagePerDiv": ArrayForScope[5],
+        "Trigger": ArrayForScope[6],
+        "frequency": ArrayForWaveform[0],
+        "dutyCycle": ArrayForWaveform[1],
+        "waveType": ArrayForWaveform[2]
+    });
     }
     if(currentPage ==2){
         data = JSON.stringify({
-        "FFT": 1, //FFT is 2
-        "Windowstyle": ArrayForFFT[0],
-        "centreFrequency": ArrayForFFT[1],
-        "bandwith": ArrayForFFT[2],
-        "scanRate": ArrayForFFT[3],});
+        "FFT": 2, //FFT is 2
+        "OnOff": ArrayForScope[0],
+        "centreFrequency": ArrayForFFT[0],
+        "VoltPerDivDb": ArrayForFFT[1],
+        "Windowstyle": ArrayForFFT[2],
+        // "scanRate": ArrayForFFT[3],
+        "frequency": ArrayForWaveform[0],
+        "dutyCycle": ArrayForWaveform[1],
+        "waveType": ArrayForWaveform[2],
+    });
     }
     console.log(JSON.parse(data));
     websocket.send(data);
@@ -366,7 +376,7 @@ function FFTScopeChange() {
         FFT.style.display = "none";
         graphPlotter.removeGraph();
         graphPlotter = oscilloscopePlotter;
-        graphPlotter.updateAxes(ArrayForScope[0], ArrayForScope[1]);
+        graphPlotter.updateAxes(ArrayForScope[4], ArrayForScope[5]);
         currentPage = 1;
 
     } else {
@@ -420,7 +430,7 @@ function SwitchHandler(SwitchstateIndex) {
 
 // 
 $('#on-off-switch').on("input", function () {
-    indexInScopeArray = 3;
+    indexInScopeArray = 0;
     SwitchstateIndex = 0;
     ValueSwitchOnOffSwitch = SwitchHandler(SwitchstateIndex);
         ArrayForScope[indexInScopeArray] = ValueSwitchOnOffSwitch  ? 1 : 0;
@@ -429,68 +439,54 @@ $('#on-off-switch').on("input", function () {
 
 
 // part of code that checks for all the fields and buttons for the oscilloscope.
-$('#timePerDivisionSlider').on("input change", function () {
-    indexInScopeArray = 0;
-    ValueTimePerDivsion = RangeSliderHandler("timePerDivisionSlider");
-    ArrayForScope[indexInScopeArray] = ValueTimePerDivsion;
-});
-
-$('#VoltagePerDivisionSlider').on("input change", function () {
-    indexInScopeArray = 1;
-    ValueVoltagePerDivsion = RangeSliderHandler("VoltagePerDivisionSlider");
-    ArrayForScope[indexInScopeArray] = ValueVoltagePerDivsion;
-    var voltage = (ArrayForScope[2] / 100) * ValueVoltagePerDivsion;
-    $('#TriggerSliderValue').text("Value in percentage: " + ArrayForScope[2] + " %");
-    $('#TriggerSliderValueVoltage').text("Value in voltage: " + voltage);
-});
-
-$('#TriggerSlider').on("input change", function () {
-    indexInScopeArray = 2;
-    var element = $('#TriggerSlider'),
-        value = element.val()
-    var voltage = (value / 100) * ArrayForScope[1]
-    $('#TriggerSliderValue').text("Value in percentage: " + value + " %");
-    $('#TriggerSliderValueVoltage').text("Value in voltage: " + voltage);
-    ArrayForScope[indexInScopeArray] = parseInt(value);
-});
-
 $('#ACDCcoupling').on("input", function () {
-    indexInScopeArray = 4;
+    indexInScopeArray = 1;
     SwitchstateIndex = 1;
     ValueSwitchACDC = SwitchHandler(SwitchstateIndex);
         ArrayForScope[indexInScopeArray] = ValueSwitchACDC  ? 1 : 0;
-    
 });
-
 $('#channel').on("input", function () {
-    indexInScopeArray = 5;
+    indexInScopeArray = 2;
     SwitchstateIndex = 2;
     ValueSwitchChannel = SwitchHandler(SwitchstateIndex);
     ArrayForScope[indexInScopeArray] = ValueSwitchChannel ? 1 : 0;
 });
 
 $('#edge').on("input", function () {
-    indexInScopeArray = 6;
+    indexInScopeArray = 3;
     SwitchstateIndex = 3;
     ValueSwitchEdge = SwitchHandler(SwitchstateIndex);
     ArrayForScope[indexInScopeArray] = ValueSwitchEdge ? 1 : 0;
 });
+$('#timePerDivisionSlider').on("input change", function () {
+    indexInScopeArray = 4;
+    ValueTimePerDivsion = RangeSliderHandler("timePerDivisionSlider");
+    ArrayForScope[indexInScopeArray] = ValueTimePerDivsion;
+});
+
+$('#VoltagePerDivisionSlider').on("input change", function () {
+    indexInScopeArray = 5;
+    ValueVoltagePerDivsion = RangeSliderHandler("VoltagePerDivisionSlider");
+    ArrayForScope[indexInScopeArray] = ValueVoltagePerDivsion;
+    var voltage = (ArrayForScope[6] / 100) * ValueVoltagePerDivsion;
+    $('#TriggerSliderValue').text("Value in percentage: " + ArrayForScope[2] + " %");
+    $('#TriggerSliderValueVoltage').text("Value in voltage: " + voltage);
+});
+
+$('#TriggerSlider').on("input change", function () {
+    indexInScopeArray = 6;
+    var element = $('#TriggerSlider'),
+        value = element.val()
+    var voltage = (value / 100) * ArrayForScope[5]
+    $('#TriggerSliderValue').text("Value in percentage: " + value + " %");
+    $('#TriggerSliderValueVoltage').text("Value in voltage: " + voltage);
+    ArrayForScope[indexInScopeArray] = parseInt(value);
+});
+
 
 //code for the FFT
-function changeWindowStyle() {
-    var windowStyleDict =  {
-        "flattop": 0,
-        "hanning": 1,
-        "uniform": 2
-      }; 
-    indexInFFTArray = 0;
-    let windowStyle = document.getElementById("window_style");
-    let windowStyleValue = windowStyle.value;
-    ArrayForFFT[indexInFFTArray] = windowStyleDict[windowStyleValue];
-}
-
 $('#centreFrequencySlider').on("input change", function () {
-    indexInFFTArray = 1;
+    indexInFFTArray = 0;
     var element = $('#centreFrequencySlider'),                              //change this when the real values are kwown
         value = element.val()
     ArrayForFFT[indexInFFTArray] = parseInt(value);
@@ -498,33 +494,34 @@ $('#centreFrequencySlider').on("input change", function () {
 });
 
 $('#DbPerDivisionSlider').on("input change", function () {
-    indexInFFTArray = 2;
+    indexInFFTArray = 1;
     ValueDbPerDivision = RangeSliderHandler("DbPerDivisionSlider");
     ArrayForFFT[indexInFFTArray] = parseInt(ValueDbPerDivision);
 });
 
-$('#scanRateSlider').on("input change", function () {
-    indexInFFTArray = 3;
-    var element = $('#scanRateSlider'),                                     //change this when the real values are kwown
-        value = element.val()
-    ArrayForFFT[indexInFFTArray] = parseInt(value);
-    $('#scanRateSliderValue').text("scan rate : " + value);
-});
+function changeWindowStyle() {
+    var windowStyleDict =  {
+        "flattop": 0,
+        "hanning": 1,
+        "uniform": 2
+      }; 
+    indexInFFTArray = 2;
+    let windowStyle = document.getElementById("window_style");
+    let windowStyleValue = windowStyle.value;
+    ArrayForFFT[indexInFFTArray] = windowStyleDict[windowStyleValue];
+}
+
+// $('#scanRateSlider').on("input change", function () {
+//     indexInFFTArray = 3;
+//     var element = $('#scanRateSlider'),                                     //change this when the real values are kwown
+//         value = element.val()
+//     ArrayForFFT[indexInFFTArray] = parseInt(value);
+//     $('#scanRateSliderValue').text("scan rate : " + value);
+// });
 
 //code for the waveformgenerator
-function changeGolfStyle() {
-    var golfStyleDict =  {
-        "sinus": 0,
-        "blok": 1,
-        "triangle": 2
-      }; 
-    indexInWFGArray = 0;
-    let golfStyle = document.getElementById("golf_style");
-    let golfStyleValue = golfStyle.value;
-    ArrayForWaveform[indexInWFGArray] = golfStyleDict[golfStyleValue];
-}
 $('#frequencySlider').on("input change", function () {
-    indexInWFGArray = 1;
+    indexInWFGArray = 0;
     var element = $('#frequencySlider'),                                    //change this when the real values are kwown
         value = element.val()
     ArrayForWaveform[indexInWFGArray] = parseInt(value);
@@ -532,9 +529,21 @@ $('#frequencySlider').on("input change", function () {
 });
 
 $('#dutycycleSlider').on("input change", function () {
-    indexInWFGArray = 2;
+    indexInWFGArray = 1;
     var element = $('#dutycycleSlider'),                                    //change this when the real values are kwown
         value = element.val()
     ArrayForWaveform[indexInWFGArray] = parseInt(value);
     $('#dutycycleSliderValue').text("Value : " + value + " %");
 });
+
+function changeGolfStyle() {
+    var golfStyleDict =  {
+        "sinus": 0,
+        "blok": 1,
+        "triangle": 2
+      }; 
+    indexInWFGArray = 2;
+    let golfStyle = document.getElementById("golf_style");
+    let golfStyleValue = golfStyle.value;
+    ArrayForWaveform[indexInWFGArray] = golfStyleDict[golfStyleValue];
+}
