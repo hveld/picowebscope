@@ -160,6 +160,7 @@ class Graph {
         else {
             range = this.width
         }
+        // console.log(minDomain, maxDomain, Value, range);
         var xy = d3.scaleLinear()
             .range([0, range])
             .domain([minDomain, maxDomain])
@@ -261,19 +262,6 @@ class FFTGraph extends Graph {
         return;
     }
 
-    Conversion(Value, minDomain, maxDomain, axis) {                                         //can be deleted later
-        var range = this.width;
-        if (axis == 'y')
-            range = this.height;
-        else {
-            range = this.width
-        }
-        var xy = d3.scaleLog()
-            .range([1, range])
-            .domain([minDomain, maxDomain])
-        return xy(Value)
-    }
-
     async drawLine() {
         var tmpXaxis = this.xAxis;
         var TmpYaxis = this.YAxis;
@@ -352,7 +340,7 @@ $('*').on('mouseup', function (e) {
         "golfType": ArrayForWaveform[2],
     });
     }
-        console.log(JSON.parse(data));
+        // console.log(JSON.parse(data));
         websocket.send(data);
 }, 50);
 });

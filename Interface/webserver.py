@@ -35,7 +35,7 @@ import asyncio
 import websockets
 import json
 
-f = open('fft_data.json')
+f = open('small_scope_data.json')
 
 data_out = json.load(f)
 
