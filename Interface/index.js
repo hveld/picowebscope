@@ -269,24 +269,41 @@ class FFTGraph extends Graph {
         var TmpYaxis = this.YAxis;
         //stationary function
         var height = this.height;
+        var JsonData = this.convertToJson(dataArray);
+        console.log(JsonData);
         this.svg.selectAll("mybar")
-            .data(dataArray)
+            .data(JsonData)
             .enter()
             .append("rect")
             .attr("x", function (d) { return tmpXaxis(d.x); })
             .attr("y", function (d) { return TmpYaxis(d.y); })
-            // .attr("width", (tmpXaxis(d.x + 1) - tmpXaxis(d.x)))
-            .attr("width", function (d) {
-                try {
-                    var next = dataArray[dataArray.indexOf(d) + 1];
-                    return (tmpXaxis(next.x) - tmpXaxis(d.x))
-                }
-                catch {
-                    //continue
-                }
-            })
+            .attr("width", function (d) { return (tmpXaxis(d.x + 1) - tmpXaxis(d.x)); })
+            // .attr("width", function (d) {
+            //     try {
+            //         var next = dataArray[dataArray.indexOf(d) + 1];
+            //         return (tmpXaxis(next.x) - tmpXaxis(d.x))
+            //     }
+            //     catch {
+            //         //continue
+            //     }
+            // })
             .attr("height", function (d) { return height - TmpYaxis(d.y); })
             .attr("fill", "#69b3a2")
+    }
+
+    convertToJson(arr) {
+        var result = '{"data":[';
+        var multiplier = 1;
+        for (var i = 0; i < arr.length; i++) {
+            var tmpJson = '{"x":' + i * multiplier + ',"y":' + arr[i] + '}';
+            if (i != arr.length - 1) {
+                tmpJson += ',';
+            }
+            result += tmpJson;
+        }
+        result += ']}';
+        result = JSON.parse(result).data;
+        return result;
     }
 }
 
