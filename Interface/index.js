@@ -200,9 +200,19 @@ class OscilloscopeGraph extends Graph {
             y1 = dataArray[i];                                                                        //may be possible to make this more readable with scale clamping
             y2 = dataArray[i + 1];
             if (y1 < minY) {
-                x1 = this.Conversion(i * multiplier, minX, maxX, 'x');
+                var x1Temp = i*multiplier;
+                var x2Temp = (i+1)*multiplier;
+                // console.log("i", i, "x1", x1Temp, "x2", x2Temp);
+                // console.log(i,x1Temp,x2Temp,multiplier,maxX);
+                if (x2Temp > maxX){
+                    x1Temp = maxX;
+                    x1 = this.Conversion(x1Temp, minX, maxX, 'x');
+                    x2 = this.Conversion(x1Temp, minX, maxX, 'x');
+                }else {
+                    x1 = this.Conversion(i * multiplier, minX, maxX, 'x');
+                    x2 = this.Conversion((i + 1) * multiplier, minX, maxX, 'x');
+                }
                 y1 = this.Conversion(dataArray[i], minY, maxY, 'y');
-                x2 = this.Conversion((i + 1) * multiplier, minX, maxX, 'x');
                 if (y2 > minY) {
                     y2 = minY;
                     y2 = this.Conversion(y2, minY, maxY, 'y');
