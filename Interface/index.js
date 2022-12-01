@@ -372,6 +372,7 @@ $('*').on('mouseup', function (e) {
         }
         // console.log(JSON.parse(data));
         websocket.send(data);
+        graphPlotter.updateGraph();
     }, 50);
 });
 
