@@ -516,7 +516,7 @@ $('#TriggerSlider').on("input change", function () {
 //code for the FFT
 $('#centreFrequencySlider').on("input change", function () {
     indexInFFTArray = 0;
-    var element = $('#centreFrequencySlider'),                              //change this when the real values are kwown
+    var element = $('#centreFrequencySlider'),
         value = element.val()
     ArrayForFFT[indexInFFTArray] = parseInt(value);
     $('#centreFrequencySliderValue').text("Value : " + value + " Hz");
@@ -542,7 +542,7 @@ function changeWindowStyle() {
 
 // $('#scanRateSlider').on("input change", function () {
 //     indexInFFTArray = 3;
-//     var element = $('#scanRateSlider'),                                     //change this when the real values are kwown
+//     var element = $('#scanRateSlider'),
 //         value = element.val()
 //     ArrayForFFT[indexInFFTArray] = parseInt(value);
 //     $('#scanRateSliderValue').text("scan rate : " + value);
@@ -551,15 +551,28 @@ function changeWindowStyle() {
 //code for the waveformgenerator
 $('#frequencySlider').on("input change", function () {
     indexInWFGArray = 0;
-    var element = $('#frequencySlider'),                                    //change this when the real values are kwown
+    var element = $('#frequencySlider'),
         value = element.val()
     ArrayForWaveform[indexInWFGArray] = parseInt(value);
+    $('#FrequencyInputField').val(parseInt(value))
     $('#frequencySliderValue').text("Value : " + value + " Hz");
 });
 
+$('#FrequencyInputField').on("ipnut change", function () {
+    indexInWFGArray = 0;
+    var element = $('#FrequencyInputField'),                                    
+        value = element.val()
+    ArrayForWaveform[indexInWFGArray] = parseInt(value);
+    if (value < 10) value = 10;
+    if (value > 100000) value = 100000
+    $('#FrequencyInputField').val(parseInt(value))
+    $('#frequencySlider').val(parseInt(value))
+    $('#frequencySliderValue').text("Value : " + value + " Hz");
+})
+
 $('#dutycycleSlider').on("input change", function () {
     indexInWFGArray = 1;
-    var element = $('#dutycycleSlider'),                                    //change this when the real values are kwown
+    var element = $('#dutycycleSlider'),
         value = element.val()
     ArrayForWaveform[indexInWFGArray] = parseInt(value);
     $('#dutycycleSliderValue').text("Value : " + value + " %");
