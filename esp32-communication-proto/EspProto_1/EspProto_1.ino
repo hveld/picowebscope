@@ -9,6 +9,8 @@
 #include "SPIFFS.h"
 #include <Arduino_JSON.h>
 #include "Test.h"
+#include "wavegen.h"
+
 const char* ssid = "EspAC";
 const char* password = "12345678";
 TaskHandle_t Task1;
@@ -22,6 +24,13 @@ AsyncWebServer server(80);
 bool fftVar = false;
 int sampleArray[1024];
 AsyncWebSocket ws("/ws");
+
+const uint8_t ad9833_sclk_pin = 17;
+const uint8_t ad9833_sdata_pin = 16;
+const uint8_t ad9833_fsync_pin = 4;
+const uint8_t switch_waveform_generator = 25;
+const uint8_t dac_offset = 26;
+WaveGen *wavegen;
 
 int onOff = 1; //staat uit
 int ArrayForScope[] = {0,0,0,0,0,0,0};
@@ -99,16 +108,6 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       Serial.println(ArrayForScope[5]);
       Serial.print("fallingRising: ");
       Serial.println(ArrayForScope[6]);
-      ArrayForWaveform[0] = ObjectJson["frequency"];
-      ArrayForWaveform[1] = ObjectJson["dutyCycle"];
-      ArrayForWaveform[2] = ObjectJson["golTtype"];
-      Serial.print("frequency: ");
-      Serial.println(ArrayForWaveform[0]);
-      Serial.print("dutyCycle: ");
-      Serial.println(ArrayForWaveform[1]);
-      Serial.print("golftype: ");
-      Serial.println(ArrayForWaveform[2]);
-      
     }
     if(ObjectJson.hasOwnProperty("FFT")){
       ArrayForScope[3] = 0;
@@ -129,19 +128,28 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       Serial.println(ArrayForFFT[3]);
       Serial.print("scanRate: ");
       Serial.println(ArrayForFFT[4]);
-
-      ArrayForWaveform[0] = ObjectJson["frequency"];
-      ArrayForWaveform[1] = ObjectJson["dutyCycle"];
-      ArrayForWaveform[2] = ObjectJson["golfType"];
-      Serial.print("frequency: ");
-      Serial.println(ArrayForWaveform[0]);
-      Serial.print("dutyCycle: ");
-      Serial.println(ArrayForWaveform[1]);
-      Serial.print("golftype: ");
-      Serial.println(ArrayForWaveform[2]);
-      
-
     }
+
+    ArrayForWaveform[0] = ObjectJson["frequency"];
+    ArrayForWaveform[1] = ObjectJson["dutyCycle"];
+    ArrayForWaveform[2] = ObjectJson["golfType"];
+    Serial.print("frequency: ");
+    Serial.println(ArrayForWaveform[0]);
+    Serial.print("dutyCycle: ");
+    Serial.println(ArrayForWaveform[1]);
+    Serial.print("golftype: ");
+    Serial.println(ArrayForWaveform[2]);
+    switch(ArrayForWaveform[2]) {
+      case 0: // sine
+        wavegen->sine(ArrayForWaveform[0]);
+        break;
+      case 1: // square
+        break;
+      case 2: // triangle
+        wavegen->triangle(ArrayForWaveform[0]);
+        break;
+    }
+
     }
  }
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
@@ -247,6 +255,8 @@ void setup() {
              1,         /* priority of the task */
              &Task2,    /* Task handle to keep track of created task */
              1);        /* pin task to core 0 */
+  static SPIClass spi(HSPI);
+  wavegen = new WaveGen(switch_waveform_generator, dac_offset, spi, ad9833_sclk_pin, ad9833_sdata_pin, ad9833_fsync_pin); 
 }
 void loop() {
 
