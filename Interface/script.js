@@ -166,6 +166,10 @@ class Graph {
             .domain([minDomain, maxDomain])
         return xy(Value)
     }
+    updateMinMax(maxX, minY) {
+        this.maxX = maxX * this.numTicksX;
+        this.minY = minY * this.numTicksY;
+    }
 }
 class OscilloscopeGraph extends Graph {
     constructor(nameOfChart, widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
@@ -179,11 +183,6 @@ class OscilloscopeGraph extends Graph {
     updateGraph() {
         this.removeDataPoints()
         this.drawLine()
-    }
-
-    updateMinMax(maxX, minY) {
-        this.maxX = maxX * this.numTicksX;
-        this.minY = minY * this.numTicksY;
     }
 
     async drawLine() {
@@ -249,10 +248,6 @@ class FFTGraph extends Graph {
         this.drawLine()
     }
 
-    updateMinMax() {
-        //do nothing
-    }
-
     updateAxes(AxisNumberOnX, AxisNumberOnY) {
         this.removeGraph();
         this.createAxes(AxisNumberOnX, AxisNumberOnY * this.numTicksY);
@@ -277,6 +272,7 @@ class FFTGraph extends Graph {
     async drawLine() {
         var tmpXaxis = this.xAxis;
         var TmpYaxis = this.YAxis;
+        var minY = this.minY;
         //stationary function
         var height = this.height;
         var JsonData = this.convertToJson(dataArray);
@@ -286,7 +282,15 @@ class FFTGraph extends Graph {
             .enter()
             .append("rect")
             .attr("x", function (d) { return tmpXaxis(d.x); })
-            .attr("y", function (d) { return TmpYaxis(d.y); })
+            .attr("y", function (d) { 
+                if (TmpYaxis(d.y) < 0){
+                    return TmpYaxis(minY);
+                  }
+                  else{
+                    return TmpYaxis(d.y);
+                  }
+                return TmpYaxis(d.y);
+            })
             .attr("width", function (d) { return (tmpXaxis(d.x + 1) - tmpXaxis(d.x)); })
             // .attr("width", function (d) {
             //     try {
@@ -297,7 +301,15 @@ class FFTGraph extends Graph {
             //         //continue
             //     }
             // })
-            .attr("height", function (d) { return height - TmpYaxis(d.y); })
+            .attr("height", function (d) { 
+                if (TmpYaxis(d.y) < 0) {
+                    return height;
+                  }
+                  else {
+                    return height - TmpYaxis(d.y);
+                  }
+                return height - TmpYaxis(d.y); 
+             })
             .attr("fill", "#69b3a2")
     }
 
@@ -339,7 +351,7 @@ $('*').on('mouseup', function (e) {
             tmp2 = ArrayForFFT[1];
         }
         graphPlotter.updateAxes(tmp1, tmp2);              //change this later to fft or scope array depending on which one is selected
-        graphPlotter.updateMinMax(ArrayForScope[4], ArrayForScope[5]);
+        graphPlotter.updateMinMax(tmp1, tmp2);
         var data;
         if (currentPage == 1) {
             //split array into json objects
