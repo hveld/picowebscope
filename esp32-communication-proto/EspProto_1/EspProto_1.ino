@@ -144,6 +144,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
         wavegen->sine(ArrayForWaveform[0]);
         break;
       case 1: // square
+        wavegen->square(ArrayForWaveform[0], (float)ArrayForWaveform[1]/100);
         break;
       case 2: // triangle
         wavegen->triangle(ArrayForWaveform[0]);
