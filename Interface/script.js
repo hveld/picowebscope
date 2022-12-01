@@ -1,6 +1,6 @@
 ArrayForScope = [0, 0, 0, 0, 100, 10, 0,]
-ArrayForFFT = [1, 10, 2, 0]
-ArrayForWaveform = [0, 0, 0]
+ArrayForFFT = [10, 10, 2, 0]
+ArrayForWaveform = [10, 1, 2]
 var dataArray = [];
 var delayBetweenCalls = 1000;
 
