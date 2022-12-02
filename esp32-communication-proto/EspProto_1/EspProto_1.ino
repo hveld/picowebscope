@@ -35,8 +35,8 @@ WaveGen *wavegen;
 const int potPin = 34;
 int potValue = 0;
 int onOff = 1; //staat uit
-int ArrayForScope[] = {0,0,0,0,0,0,0};
-int ArrayForFFT[] = {0, 0, 0, 0,0};
+int ArrayForScope[] = {0, 0, 0, 0, 0, 0, 0};
+int ArrayForFFT[] = {0, 0, 0, 0, 0};
 int ArrayForWaveform[] = {0, 0, 0};
 String message = "";
 
@@ -48,8 +48,8 @@ void initFS() {
   if (!SPIFFS.begin()) {
     //Serial.println("An error has occurred while mounting SPIFFS");
   }
-  else{
-   //Serial.println("SPIFFS mounted successfully");
+  else {
+    //Serial.println("SPIFFS mounted successfully");
   }
 }
 
@@ -77,11 +77,11 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
   //Serial.print(xPortGetCoreID());
   //Serial.print("/n");
   AwsFrameInfo *info = (AwsFrameInfo*)arg;
-  if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) { 
+  if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
     data[len] = 0; // Null terminate the string
     message = (char*)data; // Convert to string
     JSONVar ObjectJson = JSON.parse(message); // Parse the JSON string
-    if(ObjectJson.hasOwnProperty("Ossilloscope")){
+    if (ObjectJson.hasOwnProperty("Ossilloscope")) {
       ArrayForFFT[0] = 0;
       fftVar = false;
       Serial.println("oss");
@@ -107,7 +107,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       Serial.print("fallingRising: ");
       Serial.println(ArrayForScope[6]);
     }
-    if(ObjectJson.hasOwnProperty("FFT")){
+    if (ObjectJson.hasOwnProperty("FFT")) {
       ArrayForScope[3] = 0;
       fftVar = true;
       Serial.println("fft");
@@ -137,21 +137,20 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     Serial.println(ArrayForWaveform[1]);
     Serial.print("golftype: ");
     Serial.println(ArrayForWaveform[2]);
-    switch(ArrayForWaveform[2]) {
+    switch (ArrayForWaveform[2]) {
       case 0: // sine
         wavegen->sine(ArrayForWaveform[0]);
         break;
       case 1: // square
-        wavegen->square(ArrayForWaveform[0], (float)ArrayForWaveform[1]/100);
+        wavegen->square(ArrayForWaveform[0], (float)ArrayForWaveform[1] / 100);
         break;
       case 2: // triangle
         wavegen->triangle(ArrayForWaveform[0]);
         break;
     }
 
-    }
-    }
- }
+  }
+}
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
   switch (type) {
     case WS_EVT_CONNECT:
@@ -172,100 +171,100 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
 //sampling hier moet het sturn nog niet gebeuren buffer 1 vullen
 void task1(void *parameter)
 {
-    delay(5000);
-    String output1;
-    String fftString;
-    test.dittt();
-    while (1)
-    {    
-        xSemaphoreTake(xMutex, portMAX_DELAY);
-        if(ArrayForScope[3] == 1 || ArrayForFFT[0] == 1){
-        //if(true){
-        if(fftVar == true){
-          Serial.println("TEST1");
-          Serial.println(ESP.getFreeHeap());
-          
-          DynamicJsonDocument docFFT(65536);
-          JsonArray dataFFT = docFFT.createNestedArray("data");
-          
-          Serial.println("TEST2");
-          Serial.println(ESP.getFreeHeap());
-          
-          Serial.println("TEST3");
-          Serial.println(ESP.getFreeHeap());
-          for(int i = 0; i < 1024; i++){
-            dataFFT.add(test.valuesFFT[i]);
-          }
-          Serial.println("TEST4");
-          Serial.println(ESP.getFreeHeap());
-          serializeJson(docFFT,fftString);
-          Serial.println("TEST5");
-          Serial.println(ESP.getFreeHeap());
-          ws.textAll(fftString);
-          dataFFT.clear();
-          fftString = "";
-          Serial.println("TEST6");
-          Serial.println(ESP.getFreeHeap());
-        }
-        else{
-          Serial.println("TEST-1-1");
-          Serial.println(ESP.getFreeHeap());
-          DynamicJsonDocument doc2(65536);
-          JsonArray data1 = doc2.createNestedArray("data");
-          for(int i = 0; i < 1024; i++){
-            data1.add(sampleArray[i]);
-          }
-          serializeJson(doc2,output1);
-          ws.textAll(output1);
+  delay(5000);
+  String output1;
+  String fftString;
+//  test.dittt();
+  while (1)
+  {
+    xSemaphoreTake(xMutex, portMAX_DELAY);
+    if (ArrayForScope[3] == 1 || ArrayForFFT[0] == 1) {
+      //if(true){
+      if (fftVar == true) {
+        Serial.println("TEST1");
+        Serial.println(ESP.getFreeHeap());
 
-          Serial.println("TEST1-2");
-          Serial.println(ESP.getFreeHeap());
-          data1.clear();
-          output1 = "";
-          Serial.println("TEST1-3");
-          Serial.println(ESP.getFreeHeap());
+        DynamicJsonDocument docFFT(65536);
+        JsonArray dataFFT = docFFT.createNestedArray("data");
+
+        Serial.println("TEST2");
+        Serial.println(ESP.getFreeHeap());
+
+        Serial.println("TEST3");
+        Serial.println(ESP.getFreeHeap());
+        for (int i = 0; i < 1024; i++) {
+          dataFFT.add(test.valuesFFT[i]);
         }
-         }
-         else{
+        Serial.println("TEST4");
+        Serial.println(ESP.getFreeHeap());
+        serializeJson(docFFT, fftString);
+        Serial.println("TEST5");
+        Serial.println(ESP.getFreeHeap());
+        ws.textAll(fftString);
+        dataFFT.clear();
+        fftString = "";
+        Serial.println("TEST6");
+        Serial.println(ESP.getFreeHeap());
+      }
+      else {
+        Serial.println("TEST-1-1");
+        Serial.println(ESP.getFreeHeap());
+        DynamicJsonDocument doc2(65536);
+        JsonArray data1 = doc2.createNestedArray("data");
+        for (int i = 0; i < 1024; i++) {
+          data1.add(sampleArray[i]);
         }
+        serializeJson(doc2, output1);
+        ws.textAll(output1);
+
+        Serial.println("TEST1-2");
+        Serial.println(ESP.getFreeHeap());
+        data1.clear();
+        output1 = "";
+        Serial.println("TEST1-3");
+        Serial.println(ESP.getFreeHeap());
+      }
+    }
+    else {
+    }
     xSemaphoreGive(xMutex);
     vTaskDelay(50 / portTICK_PERIOD_MS);
-    }
+  }
 }
 //task2 moet buffer 1 > buffer 2 en dan sturen
 void task2(void *parameter)
 {
-  while(1){
+  while (1) {
     //if(ArrayForScope[3] == 1 || ArrayForFFT[0] == 1){
-    if(true){
+    if (true) {
       xSemaphoreTake(xMutex, portMAX_DELAY);
-      for(int i = 0; i < 1024; i++){
+      for (int i = 0; i < 1024; i++) {
         int randNumber = random(10, 20);
         sampleArray[i] = randNumber;
       }
     }
-    else{
+    else {
     }
     xSemaphoreGive(xMutex);
-    vTaskDelay(50 / portTICK_PERIOD_MS); 
+    vTaskDelay(50 / portTICK_PERIOD_MS);
   }
 }
-void taskRealSamples(void *parameter){
-  while(1){
-    if(true){
-    //if(ArrayForScope[3] == 1 || ArrayForFFT[0] == 1){
-    xSemaphoreTake(xMutex, portMAX_DELAY);
-    for(int i = 0; i <1024; i++){
-      potValue = analogRead(potPin);
-      //Serial.println(potValue);
-      //delayMicroseconds(976);
-      sampleArray[i] = potValue;
+void taskRealSamples(void *parameter) {
+  while (1) {
+    if (true) {
+      //if(ArrayForScope[3] == 1 || ArrayForFFT[0] == 1){
+      xSemaphoreTake(xMutex, portMAX_DELAY);
+      for (int i = 0; i < 1024; i++) {
+        potValue = analogRead(potPin);
+        //Serial.println(potValue);
+        //delayMicroseconds(976);
+        sampleArray[i] = potValue;
+      }
     }
+    else {}
+    xSemaphoreGive(xMutex);
+    vTaskDelay(50 / portTICK_PERIOD_MS);
   }
-  else{}
-   xSemaphoreGive(xMutex);
-   vTaskDelay(50 / portTICK_PERIOD_MS); 
-}
 }
 void setup() {
   Serial.begin(115200);
@@ -280,7 +279,7 @@ void setup() {
   Serial.println(IP);
   initWebSocket();
   // Web Server Root URL
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
     request->send(SPIFFS, "/index.html", "text/html");
   });
   server.serveStatic("/", SPIFFS, "/");
@@ -288,28 +287,28 @@ void setup() {
   server.begin();
   xMutex = xSemaphoreCreateMutex();
   xTaskCreatePinnedToCore(
-             task1, /* Task function. */
-             "Task1",   /* name of task. */
-             10000,     /* Stack size of task */
-             NULL,      /* parameter of the task */
-             1,         /* priority of the task */
-             &Task1,    /* 1ask handle to keep track of created task */
-             1);        /* pin task to core 0 */
+    task1, /* Task function. */
+    "Task1",   /* name of task. */
+    10000,     /* Stack size of task */
+    NULL,      /* parameter of the task */
+    1,         /* priority of the task */
+    &Task1,    /* 1ask handle to keep track of created task */
+    1);        /* pin task to core 0 */
   xTaskCreatePinnedToCore(
-             taskRealSamples, /* Task function. */
-             "Task2",   /* name of task. */
-             10000,     /* Stack size of task */
-             NULL,      /* parameter of the task */
-             1,         /* priority of the task */
-             &Task2,    /* Task handle to keep track of created task */
-             1);        /* pin task to core 0 */
-   Serial.println("setup klaar");
+    taskRealSamples, /* Task function. */
+    "Task2",   /* name of task. */
+    10000,     /* Stack size of task */
+    NULL,      /* parameter of the task */
+    1,         /* priority of the task */
+    &Task2,    /* Task handle to keep track of created task */
+    1);        /* pin task to core 0 */
+  Serial.println("setup klaar");
 }
 void loop() {
-//    potValue = analogRead(potPin);
-//    Serial.println(potValue);
-//    delay(1);
+  //    potValue = analogRead(potPin);
+  //    Serial.println(potValue);
+  //    delay(1);
 }
-void generateSignal(){
+void generateSignal() {
   //generate the signal
 }
