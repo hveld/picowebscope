@@ -96,11 +96,11 @@ class Graph {
             .style("filter", "url(#I)")
             .append("g")
             .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
-
+        
         this.svg.append("g")                             //draws lines vertically and numbers x-axis
             .attr("class", "x axis")
             .attr("transform", "translate(0," + this.height + ")")
-            .call(d3.axisBottom(this.xAxis).tickSize(-this.height).ticks(this.numTicksY))
+            .call(d3.axisBottom(this.xAxis).tickSize(-this.height).ticks(this.numTicksY,".3s"))
             .selectAll("line")
             .style("stroke-dasharray", function (d, i) {
                 var dashArray = []
@@ -118,7 +118,7 @@ class Graph {
 
         this.svg.append("g")                             //draws lines horizontally and numbers y-axis
             .attr("class", "y axis")
-            .call(d3.axisLeft(this.YAxis).tickSize(-this.width).ticks(this.numTicksX))
+            .call(d3.axisLeft(this.YAxis).tickSize(-this.width).ticks(this.numTicksX,".3s"))
             .selectAll("line")
             .style("stroke-dasharray", function (d, i) {
                 var dashArray = []
@@ -256,8 +256,6 @@ class FFTGraph extends Graph {
         var y = d3.scaleLog()            //calculate numbers for the y axis
             .range([this.height, 1])
             .domain([1, axisNumberOnY])
-        //scaleLinear
-        // var x = d3.scaleLinear()            //calculate numbers for the x axis
         var x = d3.scaleLog()             //calculate numbers for the x axis
             .range([1, this.width])
             .domain([1, axisNumberOnX])
@@ -269,6 +267,7 @@ class FFTGraph extends Graph {
     async drawLine() {
         var tmpXaxis = this.xAxis;
         var TmpYaxis = this.YAxis;
+        var maxX  = this.maxX;
         var minY = this.minY;
         //stationary function
         var height = this.height;
@@ -298,6 +297,9 @@ class FFTGraph extends Graph {
             //     }
             // })
             .attr("height", function (d) { 
+                if (d.x > maxX){
+                    return 0;
+                }
                 if (TmpYaxis(d.y) < 0) {
                     return height;
                   }
@@ -599,6 +601,7 @@ function changeGolfStyle() {
         "square": 1,
         "triangle": 2
     };
+    
     indexInWFGArray = 2;
     let golfStyle = document.getElementById("golf_style");
     let golfStyleValue = golfStyle.value;
