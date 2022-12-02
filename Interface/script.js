@@ -1,8 +1,8 @@
-ArrayForScope = [0, 0, 0, 0,100, 10, 0, ]
-ArrayForFFT = [1, 10, 2, 0]
-ArrayForWaveform = [0, 0, 0]
+ArrayForScope = [0, 0, 0, 0, 100, 10, 0,]
+ArrayForFFT = [10, 10, 2, 0]
+ArrayForWaveform = [10, 1, 0]
 var dataArray = [];
-var delayBetweenCalls = 1000;
+var delayBetweenCalls = 30;
 
 const gateway = 'ws://localhost:8000';        //for the python webserver
 // var gateway = `ws://${window.location.hostname}/ws`;     //for the esp webserver
@@ -22,9 +22,6 @@ function initWebSocket() {
     websocket.onclose = onClose;
     websocket.onmessage = onMessage;
 }
-function Send_data() {
-    websocket.send("request_data");
-}
 
 function onOpen(event) {
     ConnectionState.innerHTML = 'Connection Opened';
@@ -32,7 +29,7 @@ function onOpen(event) {
 function onClose(event) {
     ConnectionState.innerHTML = 'Connection Closed';
     setTimeout(initWebSocket, 2000);
-  }
+}
 function onMessage(event) {
     dataArray = JSON.parse(event.data).data
 }
@@ -56,27 +53,27 @@ class Graph {
     }
 
     createAxes(axisNumberOnX, axisNumberOnY) {
-    var unitArray = ["us/div", "s/div", "ms/div"];
-    var unit = unitArray[0];
-    if (Number.isInteger(axisNumberOnX / 10 ** 6)) {
-        unit = unitArray[unitArray.length - 2];
-        axisNumberOnX = axisNumberOnX / 10 ** 6;
-    } else if (Number.isInteger(axisNumberOnX / 10 ** 3)) {
-        unit = unitArray[unitArray.length - 1];
-        axisNumberOnX = axisNumberOnX / 10 ** 3;
-    }
-    this.xAxisName = unit;
+        var unitArray = ["us/div", "s/div", "ms/div"];
+        var unit = unitArray[0];
+        if (Number.isInteger(axisNumberOnX / 10 ** 6)) {
+            unit = unitArray[unitArray.length - 2];
+            axisNumberOnX = axisNumberOnX / 10 ** 6;
+        } else if (Number.isInteger(axisNumberOnX / 10 ** 3)) {
+            unit = unitArray[unitArray.length - 1];
+            axisNumberOnX = axisNumberOnX / 10 ** 3;
+        }
+        this.xAxisName = unit;
 
-    unitArray = ["mV/div", "V/div"];
-    var unit = unitArray[0];
-    if (Number.isInteger(axisNumberOnY / 10 ** 6)) {
-        unit = unitArray[unitArray.length - 2];
-        axisNumberOnY = axisNumberOnY / 10 ** 6;
-    } else if (Number.isInteger(axisNumberOnY / 10 ** 3)) {
-        unit = unitArray[unitArray.length - 1];
-        axisNumberOnY = axisNumberOnY / 10 ** 3;
-    }
-    this.yAxisName = unit;
+        unitArray = ["mV/div", "V/div"];
+        var unit = unitArray[0];
+        if (Number.isInteger(axisNumberOnY / 10 ** 6)) {
+            unit = unitArray[unitArray.length - 2];
+            axisNumberOnY = axisNumberOnY / 10 ** 6;
+        } else if (Number.isInteger(axisNumberOnY / 10 ** 3)) {
+            unit = unitArray[unitArray.length - 1];
+            axisNumberOnY = axisNumberOnY / 10 ** 3;
+        }
+        this.yAxisName = unit;
 
         var y = d3.scaleLinear()            //calculate numbers for the y axis
             .range([this.height, 0])
@@ -96,11 +93,11 @@ class Graph {
             .style("filter", "url(#I)")
             .append("g")
             .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
-
+        
         this.svg.append("g")                             //draws lines vertically and numbers x-axis
             .attr("class", "x axis")
             .attr("transform", "translate(0," + this.height + ")")
-            .call(d3.axisBottom(this.xAxis).tickSize(-this.height).ticks(this.numTicksY))
+            .call(d3.axisBottom(this.xAxis).tickSize(-this.height).ticks(this.numTicksY,".3s"))
             .selectAll("line")
             .style("stroke-dasharray", function (d, i) {
                 var dashArray = []
@@ -118,7 +115,7 @@ class Graph {
 
         this.svg.append("g")                             //draws lines horizontally and numbers y-axis
             .attr("class", "y axis")
-            .call(d3.axisLeft(this.YAxis).tickSize(-this.width).ticks(this.numTicksX))
+            .call(d3.axisLeft(this.YAxis).tickSize(-this.width).ticks(this.numTicksX,".3s"))
             .selectAll("line")
             .style("stroke-dasharray", function (d, i) {
                 var dashArray = []
@@ -165,6 +162,15 @@ class Graph {
             .domain([minDomain, maxDomain])
         return xy(Value)
     }
+    updateMinMax(maxX, minY) {
+        this.maxX = maxX * this.numTicksX;
+        this.minY = minY * this.numTicksY;
+    }
+
+    updateGraph() {
+        this.removeDataPoints()
+        this.drawLine()
+    }
 }
 class OscilloscopeGraph extends Graph {
     constructor(nameOfChart, widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
@@ -175,31 +181,32 @@ class OscilloscopeGraph extends Graph {
         this.drawLinesInGraph();
         this.updateGraph();
     }
-    updateGraph() {
-        this.removeDataPoints()
-        this.drawLine()
-    }
-
-    updateMinMax(maxX, minY) {
-        this.maxX = maxX * this.numTicksX;
-        this.minY = minY * this.numTicksY;
-    }
-
+    
     async drawLine() {
+        var multiplier = 4;
         var strokeWidth = 1,
             minX = 0,                               //this needs to be auatomated later. These values must be given from the esp.
             maxX = this.maxX,
             minY = this.minY,
             maxY = 0;
+
         var x1, x2, y1, y2 = 0;
         //stationary function
         for (var i = 0; i < dataArray.length - 1; i++) {
             y1 = dataArray[i];                                                                        //may be possible to make this more readable with scale clamping
             y2 = dataArray[i + 1];
             if (y1 < minY) {
-                x1 = this.Conversion(i, minX, maxX, 'x');
+                var x1Temp = i*multiplier;
+                var x2Temp = (i+1)*multiplier;
+                if (x2Temp > maxX){
+                    x1Temp = maxX;
+                    x1 = this.Conversion(x1Temp, minX, maxX, 'x');
+                    x2 = this.Conversion(x1Temp, minX, maxX, 'x');
+                }else {
+                    x1 = this.Conversion(i * multiplier, minX, maxX, 'x');
+                    x2 = this.Conversion((i + 1) * multiplier, minX, maxX, 'x');
+                }
                 y1 = this.Conversion(dataArray[i], minY, maxY, 'y');
-                x2 = this.Conversion(i + 1, minX, maxX, 'x');
                 if (y2 > minY) {
                     y2 = minY;
                     y2 = this.Conversion(y2, minY, maxY, 'y');
@@ -228,21 +235,13 @@ class FFTGraph extends Graph {
         this.updateGraph();
     }
 
-    removeDataPoints(){
+    removeDataPoints() {
         this.svg.selectAll("rect").remove();
-    }
-    updateGraph() {
-        this.removeDataPoints()
-        this.drawLine()
-    }
-
-    updateMinMax(){
-        //do nothing
     }
 
     updateAxes(AxisNumberOnX, AxisNumberOnY) {
         this.removeGraph();
-        this.createAxes(AxisNumberOnX, AxisNumberOnY*this.numTicksY);
+        this.createAxes(AxisNumberOnX, AxisNumberOnY * this.numTicksY);
         this.drawLinesInGraph();
         this.updateGraph();
     }
@@ -251,8 +250,6 @@ class FFTGraph extends Graph {
         var y = d3.scaleLog()            //calculate numbers for the y axis
             .range([this.height, 1])
             .domain([1, axisNumberOnY])
-        //scaleLinear
-        // var x = d3.scaleLinear()            //calculate numbers for the x axis
         var x = d3.scaleLog()             //calculate numbers for the x axis
             .range([1, this.width])
             .domain([1, axisNumberOnX])
@@ -261,42 +258,63 @@ class FFTGraph extends Graph {
         return;
     }
 
-    Conversion(Value, minDomain, maxDomain, axis) {                                         //can be deleted later
-        var range = this.width;
-        if (axis == 'y')
-            range = this.height;
-        else {
-            range = this.width
-        }
-        var xy = d3.scaleLog()
-            .range([1, range])
-            .domain([minDomain, maxDomain])
-        return xy(Value)
-    }
-
     async drawLine() {
         var tmpXaxis = this.xAxis;
         var TmpYaxis = this.YAxis;
+        var maxX  = this.maxX/this.numTicksX;
+        var minY = this.minY;
         //stationary function
         var height = this.height;
+        var JsonData = this.convertToJson(dataArray);
         this.svg.selectAll("mybar")
-            .data(dataArray)
+            .data(JsonData)
             .enter()
             .append("rect")
-                .attr("x", function (d) { return tmpXaxis(d.x); })
-                .attr("y", function (d) { return TmpYaxis(d.y); })
-                // .attr("width", (tmpXaxis(d.x + 1) - tmpXaxis(d.x)))
-                .attr("width", function (d) { 
-                    try{
-                        var next = dataArray[dataArray.indexOf(d)+1];
-                        return (tmpXaxis(next.x) - tmpXaxis(d.x))
-                    }
-                      catch{
-                        //continue
-                      }
-                })
-                .attr("height", function (d) { return height - TmpYaxis(d.y); })
-                .attr("fill", "#69b3a2")
+            .attr("x", function (d) {return tmpXaxis(d.x); })
+            .attr("y", function (d) { 
+                if (TmpYaxis(d.y) < 0){
+                    return TmpYaxis(minY);
+                  }
+                  else{
+                    return TmpYaxis(d.y);
+                  }
+                return TmpYaxis(d.y);
+            })
+            .attr("width", function (d) { return (tmpXaxis(d.x + 1) - tmpXaxis(d.x)); })
+            // .attr("width", function (d) {
+            //     try {
+            //         var next = dataArray[dataArray.indexOf(d) + 1];
+            //         return (tmpXaxis(next.x) - tmpXaxis(d.x))
+            //     }
+            //     catch {
+            //         //continue
+            //     }
+            // })
+            .attr("height", function (d) { 
+                if (d.x >= maxX || height - TmpYaxis(d.y) < 0){
+                    return 0;
+                }else if (TmpYaxis(d.y) < 0) {
+                    return height;
+                }else{
+                   return height - TmpYaxis(d.y);
+                }
+})
+            .attr("fill", "#69b3a2")
+    }
+
+    convertToJson(arr) {
+        var result = '{"data":[';
+        var multiplier = 1;
+        for (var i = 1; i <= arr.length; i++) {
+            var tmpJson = '{"x":' + i * multiplier + ',"y":' + arr[i-1] + '}';
+            if (i != arr.length) {
+                tmpJson += ',';
+            }
+            result += tmpJson;
+        }
+        result += ']}';
+        result = JSON.parse(result).data;
+        return result;
     }
 }
 
@@ -310,51 +328,55 @@ var keepAliveId;
 var updateGraphID;
 var currentPage = 2;
 
-$('*').on('mouseup', function (e) {
-    e.stopImmediatePropagation();
-    setTimeout(function () {
+function SendDataOnUpdate () {
     var scope = document.getElementById("scope");
     if (scope.style.display === "block") {
-         tmp1 = ArrayForScope[4];
-         tmp2 = ArrayForScope[5];
+        tmp1 = ArrayForScope[4];
+        tmp2 = ArrayForScope[5];
     } else {
         tmp1 = ArrayForFFT[0];
         tmp2 = ArrayForFFT[1];
     }
-     graphPlotter.updateAxes(tmp1, tmp2);              //change this later to fft or scope array depending on which one is selected
-     graphPlotter.updateMinMax(ArrayForScope[4], ArrayForScope[5]);
-     var data;
-    if(currentPage ==1 ){
+    graphPlotter.updateAxes(tmp1, tmp2);              //change this later to fft or scope array depending on which one is selected
+    graphPlotter.updateMinMax(tmp1, tmp2);
+    var data;
+    if (currentPage == 1) {
         //split array into json objects
         data = JSON.stringify({
-        "Ossilloscope": 1,//ossilloscope is 1
-        "OnOff": ArrayForScope[0],
-        "ACDC": ArrayForScope[1],
-        "Channel": ArrayForScope[2],
-        "edge": ArrayForScope[3],
-        "TimePerDiv": ArrayForScope[4],
-        "VoltagePerDiv": ArrayForScope[5],
-        "Trigger": ArrayForScope[6],
-        "frequency": ArrayForWaveform[0],
-        "dutyCycle": ArrayForWaveform[1],
-        "golfType": ArrayForWaveform[2]
-    });}
-    if(currentPage ==2){
-        data = JSON.stringify({
-        "FFT": 2, //FFT is 2
-        "OnOff": ArrayForScope[0],
-        "centreFrequency": ArrayForFFT[0],
-        "VoltPerDivDb": ArrayForFFT[1],
-        "Windowstyle": ArrayForFFT[2],
-        // "scanRate": ArrayForFFT[3],
-        "frequency": ArrayForWaveform[0],
-        "dutyCycle": ArrayForWaveform[1],
-        "golfType": ArrayForWaveform[2],
-    });
+            "Ossilloscope": 1,//ossilloscope is 1
+            "OnOff": ArrayForScope[0],
+            "ACDC": ArrayForScope[1],
+            "Channel": ArrayForScope[2],
+            "edge": ArrayForScope[3],
+            "TimePerDiv": ArrayForScope[4],
+            "VoltagePerDiv": ArrayForScope[5],
+            "Trigger": ArrayForScope[6],
+            "frequency": ArrayForWaveform[0],
+            "dutyCycle": ArrayForWaveform[1],
+            "golfType": ArrayForWaveform[2]
+        });
     }
-        console.log(JSON.parse(data));
-        websocket.send(data);
-}, 50);
+    if (currentPage == 2) {
+        data = JSON.stringify({
+            "FFT": 2, //FFT is 2
+            "OnOff": ArrayForScope[0],
+            "centreFrequency": ArrayForFFT[0],
+            "VoltPerDivDb": ArrayForFFT[1],
+            "Windowstyle": ArrayForFFT[2],
+            // "scanRate": ArrayForFFT[3],
+            "frequency": ArrayForWaveform[0],
+            "dutyCycle": ArrayForWaveform[1],
+            "golfType": ArrayForWaveform[2],
+        });
+    }
+    console.log(JSON.parse(data));
+    websocket.send(data);
+    graphPlotter.updateGraph();
+}
+
+$('*').on('mouseup', function (e) {
+    e.stopImmediatePropagation();
+    setTimeout(SendDataOnUpdate, 50);
 });
 
 function startStopUpdatingGraph(Value) {
@@ -427,12 +449,11 @@ function SwitchHandler(SwitchstateIndex) {
     return switchStateArray[SwitchstateIndex];
 }
 
-// 
 $('#on-off-switch').on("input", function () {
     indexInScopeArray = 0;
     SwitchstateIndex = 0;
     ValueSwitchOnOffSwitch = SwitchHandler(SwitchstateIndex);
-        ArrayForScope[indexInScopeArray] = ValueSwitchOnOffSwitch  ? 1 : 0;
+    ArrayForScope[indexInScopeArray] = ValueSwitchOnOffSwitch ? 1 : 0;
     startStopUpdatingGraph(ValueSwitchOnOffSwitch);
 });
 
@@ -442,7 +463,7 @@ $('#ACDCcoupling').on("input", function () {
     indexInScopeArray = 1;
     SwitchstateIndex = 1;
     ValueSwitchACDC = SwitchHandler(SwitchstateIndex);
-        ArrayForScope[indexInScopeArray] = ValueSwitchACDC  ? 1 : 0;
+    ArrayForScope[indexInScopeArray] = ValueSwitchACDC ? 1 : 0;
 });
 $('#channel').on("input", function () {
     indexInScopeArray = 2;
@@ -485,12 +506,27 @@ $('#TriggerSlider').on("input change", function () {
 //code for the FFT
 $('#centreFrequencySlider').on("input change", function () {
     indexInFFTArray = 0;
-    var element = $('#centreFrequencySlider'),                              //change this when the real values are kwown
+    var element = $('#centreFrequencySlider'),
         value = element.val()
     ArrayForFFT[indexInFFTArray] = parseInt(value);
     $('#centreFrequencySliderValue').text("Value : " + value + " Hz");
+    $('#CentreFrequencyInputField').val(parseInt(value))
+
 });
 
+$('#CentreFrequencyInputField').on("ipnut change", function () {
+    indexInWFGArray = 0;
+    var element = $('#CentreFrequencyInputField'),                                    
+        value = element.val()
+    ArrayForFFT[indexInWFGArray] = parseInt(value);
+    min = 10;
+    max = 500000;
+    if (value < min) value = min;
+    if (value > max) value = max;
+    $('#CentreFrequencyInputField').val(parseInt(value))
+    $('#centreFrequencySlider').val(parseInt(value))
+    $('#centreFrequencySliderValue').text("Value : " + value + " Hz");
+})
 $('#DbPerDivisionSlider').on("input change", function () {
     indexInFFTArray = 1;
     ValueDbPerDivision = RangeSliderHandler("DbPerDivisionSlider");
@@ -498,20 +534,21 @@ $('#DbPerDivisionSlider').on("input change", function () {
 });
 
 function changeWindowStyle() {
-    var windowStyleDict =  {
+    var windowStyleDict = {
         "flattop": 0,
         "hanning": 1,
         "uniform": 2
-      }; 
+    };
     indexInFFTArray = 2;
     let windowStyle = document.getElementById("window_style");
     let windowStyleValue = windowStyle.value;
     ArrayForFFT[indexInFFTArray] = windowStyleDict[windowStyleValue];
+    setTimeout(SendDataOnUpdate, 50);
 }
 
 // $('#scanRateSlider').on("input change", function () {
 //     indexInFFTArray = 3;
-//     var element = $('#scanRateSlider'),                                     //change this when the real values are kwown
+//     var element = $('#scanRateSlider'),
 //         value = element.val()
 //     ArrayForFFT[indexInFFTArray] = parseInt(value);
 //     $('#scanRateSliderValue').text("scan rate : " + value);
@@ -520,28 +557,45 @@ function changeWindowStyle() {
 //code for the waveformgenerator
 $('#frequencySlider').on("input change", function () {
     indexInWFGArray = 0;
-    var element = $('#frequencySlider'),                                    //change this when the real values are kwown
+    var element = $('#frequencySlider'),
         value = element.val()
     ArrayForWaveform[indexInWFGArray] = parseInt(value);
+    $('#FrequencyInputField').val(parseInt(value))
     $('#frequencySliderValue').text("Value : " + value + " Hz");
 });
 
+$('#FrequencyInputField').on("ipnut change", function () {
+    indexInWFGArray = 0;
+    var element = $('#FrequencyInputField'),                                    
+        value = element.val()
+    ArrayForWaveform[indexInWFGArray] = parseInt(value);
+    min = 10;
+    max = 100000;
+    if (value < min) value = min;
+    if (value > max) value = max;
+    $('#FrequencyInputField').val(parseInt(value))
+    $('#frequencySlider').val(parseInt(value))
+    $('#frequencySliderValue').text("Value : " + value + " Hz");
+})
+
 $('#dutycycleSlider').on("input change", function () {
     indexInWFGArray = 1;
-    var element = $('#dutycycleSlider'),                                    //change this when the real values are kwown
+    var element = $('#dutycycleSlider'),
         value = element.val()
     ArrayForWaveform[indexInWFGArray] = parseInt(value);
     $('#dutycycleSliderValue').text("Value : " + value + " %");
 });
 
 function changeGolfStyle() {
-    var golfStyleDict =  {
-        "sinus": 0,
-        "blok": 1,
+    var golfStyleDict = {
+        "sine": 0,
+        "square": 1,
         "triangle": 2
-      }; 
+    };
+    
     indexInWFGArray = 2;
     let golfStyle = document.getElementById("golf_style");
     let golfStyleValue = golfStyle.value;
     ArrayForWaveform[indexInWFGArray] = golfStyleDict[golfStyleValue];
+    setTimeout(SendDataOnUpdate, 50);
 }

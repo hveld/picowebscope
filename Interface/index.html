@@ -16,22 +16,23 @@
                 <p>frequency</p>
                 <!-- change the min max to the correct values -->
                 <input id="frequencySlider" type="range" min="10" max="100000" value="0" step="1">
+                <input id="FrequencyInputField" type="number" value="10" min="10" max="100000">
                 <div class=" range_output">
                     <output name="frequencyOutput" id="frequencySliderValue">Value: 10 hz</output>
                 </div>
             </label>
             <label class="dutycycle">
                 <p>dutycycle</p>
-                <input id="dutycycleSlider" type="range" min="5" max="95" value="0" step="1">
+                <input id="dutycycleSlider" type="range" min="1" max="99" value="0" step="1">
                 <div class=" range_output">
-                    <output name="dutycycleOutput" id="dutycycleSliderValue">Value: 5 %</output>
+                    <output name="dutycycleOutput" id="dutycycleSliderValue">Value: 1 %</output>
                 </div>
             </label>
             <form name="form1" id="form1">
                 golf type: <select name="golf_style" id="golf_style" onchange="changeGolfStyle()">
-                    <option value="sinus" selected="selected">sinus</option>
-                    <option value="blok" selected="selected">blok</option>
-                    <option value="triangle" selected="selected">triangle</option>
+                    <option value="sine" selected="selected">sine</option>
+                    <option value="square" selected="selected">square</option>
+                    <option value="triangle" selected="selected">sinus</option>
                 </select>
             </form>
         </div>
@@ -40,9 +41,10 @@
             <label class="centreFrequency">
                 <p>Frequency for the FFT</p>
                 <!-- change the min max to the correct values -->
-                <input id="centreFrequencySlider" type="range" min="1" max="500000" value="0" step="1">
+                <input id="centreFrequencySlider" type="range" min="10" max="500000" value="0" step="1">
+                <input id="CentreFrequencyInputField" type="number" value="10" min="10" max="500000">
                 <div class=" range_output">
-                    <output name="centreFrequencyOutput" id="centreFrequencySliderValue">Value: 1 hz</output>
+                    <output name="centreFrequencyOutput" id="centreFrequencySliderValue">Value: 10 hz</output>
                 </div>
             </label>
             <label class="Db per division">
@@ -127,13 +129,13 @@
                 <input type="checkbox" id="on-off-switch">
                 <span class="slider round"></span>
             </label>
-            <label>On/Off</label>
+            <label>Off/On</label>
         </div>
         <div class="grid-child" id="Chart"></div>
         <!-- <div class="grid-child fft" id="FFTChart"></div> -->
 
     </div>
-    <script src="index.js"></script>
+    <script src="script.js"></script>
 </body>
 
 </html>

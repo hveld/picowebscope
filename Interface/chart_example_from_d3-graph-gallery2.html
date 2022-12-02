@@ -40,17 +40,17 @@
       var x = d3.scaleLog()             //calculate numbers for the x axis
         .range([0, width])
         .domain([1, 11]);
-
+        
       svg.append("g")
         .attr("transform", "translate(0," + height + ")")
-        .call(d3.axisBottom(x))
+        .call(d3.axisBottom(x).tickFormat(d3.format("d")))
         .selectAll("text")
         .attr("transform", "translate(-10,0)rotate(-45)")
         .style("text-anchor", "end");
 
       // Add Y axis
       var y = d3.scaleLinear()
-        .domain([0, 13000])
+        .domain([0, 10000])
         .range([height, 0]);
       svg.append("g")
         .call(d3.axisLeft(y));
@@ -63,19 +63,34 @@
         .enter()
         .append("rect")
         .attr("x", function (d) { return x(d.Country); })
-        .attr("y", function (d) { return y(d.Value); })
+        .attr("y", function (d) { 
+          if (y(d.Value) < 0){
+            return y(10000);
+          }
+          else{
+            return y(d.Value);
+          }
+          return y(d.Value); })
         .attr("width", function (d) { 
           // index = data.indexOf(d.Country);
           // next = data[index + 1].Country;
           try{
-            
-            return x(data[data.indexOf(d)+1]) - x(d.Country);
+            return x(d.Country+1) - x(d.Country);
+            // return x(data[data.indexOf(d)+1]) - x(d.Country);
           }
           catch{
             //continue
           }
         })
-        .attr("height", function (d) { return height - y(d.Value); })
+        .attr("height", function (d) { 
+          if (y(d.Value) < 0) {
+            return height;
+          }
+          else {
+            return height - y(d.Value);
+          }
+          return height - y(d.Value); 
+        })
         .attr("fill", "#69b3a2")
     })
     setTimeout(function () {
