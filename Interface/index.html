@@ -32,7 +32,7 @@
                 golf type: <select name="golf_style" id="golf_style" onchange="changeGolfStyle()">
                     <option value="sinus" selected="selected">sinus</option>
                     <option value="blok" selected="selected">blok</option>
-                    <option value="triangle" selected="selected">triangle</option>
+                    <option value="triangle" selected="selected">sinus</option>
                 </select>
             </form>
         </div>
@@ -42,6 +42,7 @@
                 <p>Frequency for the FFT</p>
                 <!-- change the min max to the correct values -->
                 <input id="centreFrequencySlider" type="range" min="10" max="500000" value="0" step="1">
+                <input id="CentreFrequencyInputField" type="number" value="10" min="10" max="500000">
                 <div class=" range_output">
                     <output name="centreFrequencyOutput" id="centreFrequencySliderValue">Value: 10 hz</output>
                 </div>
@@ -128,7 +129,7 @@
                 <input type="checkbox" id="on-off-switch">
                 <span class="slider round"></span>
             </label>
-            <label>On/Off</label>
+            <label>Off/On</label>
         </div>
         <div class="grid-child" id="Chart"></div>
         <!-- <div class="grid-child fft" id="FFTChart"></div> -->

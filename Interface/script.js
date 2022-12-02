@@ -1,6 +1,6 @@
 ArrayForScope = [0, 0, 0, 0, 100, 10, 0,]
 ArrayForFFT = [10, 10, 2, 0]
-ArrayForWaveform = [10, 1, 2]
+ArrayForWaveform = [10, 1, 0]
 var dataArray = [];
 var delayBetweenCalls = 1000;
 
@@ -160,7 +160,6 @@ class Graph {
         else {
             range = this.width
         }
-        // console.log(minDomain, maxDomain, Value, range);
         var xy = d3.scaleLinear()
             .range([0, range])
             .domain([minDomain, maxDomain])
@@ -201,8 +200,6 @@ class OscilloscopeGraph extends Graph {
             if (y1 < minY) {
                 var x1Temp = i*multiplier;
                 var x2Temp = (i+1)*multiplier;
-                // console.log("i", i, "x1", x1Temp, "x2", x2Temp);
-                // console.log(i,x1Temp,x2Temp,multiplier,maxX);
                 if (x2Temp > maxX){
                     x1Temp = maxX;
                     x1 = this.Conversion(x1Temp, minX, maxX, 'x');
@@ -276,7 +273,6 @@ class FFTGraph extends Graph {
         //stationary function
         var height = this.height;
         var JsonData = this.convertToJson(dataArray);
-        console.log(JsonData);
         this.svg.selectAll("mybar")
             .data(JsonData)
             .enter()
@@ -339,53 +335,55 @@ var keepAliveId;
 var updateGraphID;
 var currentPage = 2;
 
+function SendDataOnUpdate () {
+    var scope = document.getElementById("scope");
+    if (scope.style.display === "block") {
+        tmp1 = ArrayForScope[4];
+        tmp2 = ArrayForScope[5];
+    } else {
+        tmp1 = ArrayForFFT[0];
+        tmp2 = ArrayForFFT[1];
+    }
+    graphPlotter.updateAxes(tmp1, tmp2);              //change this later to fft or scope array depending on which one is selected
+    graphPlotter.updateMinMax(tmp1, tmp2);
+    var data;
+    if (currentPage == 1) {
+        //split array into json objects
+        data = JSON.stringify({
+            "Ossilloscope": 1,//ossilloscope is 1
+            "OnOff": ArrayForScope[0],
+            "ACDC": ArrayForScope[1],
+            "Channel": ArrayForScope[2],
+            "edge": ArrayForScope[3],
+            "TimePerDiv": ArrayForScope[4],
+            "VoltagePerDiv": ArrayForScope[5],
+            "Trigger": ArrayForScope[6],
+            "frequency": ArrayForWaveform[0],
+            "dutyCycle": ArrayForWaveform[1],
+            "golfType": ArrayForWaveform[2]
+        });
+    }
+    if (currentPage == 2) {
+        data = JSON.stringify({
+            "FFT": 2, //FFT is 2
+            "OnOff": ArrayForScope[0],
+            "centreFrequency": ArrayForFFT[0],
+            "VoltPerDivDb": ArrayForFFT[1],
+            "Windowstyle": ArrayForFFT[2],
+            // "scanRate": ArrayForFFT[3],
+            "frequency": ArrayForWaveform[0],
+            "dutyCycle": ArrayForWaveform[1],
+            "golfType": ArrayForWaveform[2],
+        });
+    }
+    console.log(JSON.parse(data));
+    websocket.send(data);
+    graphPlotter.updateGraph();
+}
+
 $('*').on('mouseup', function (e) {
     e.stopImmediatePropagation();
-    setTimeout(function () {
-        var scope = document.getElementById("scope");
-        if (scope.style.display === "block") {
-            tmp1 = ArrayForScope[4];
-            tmp2 = ArrayForScope[5];
-        } else {
-            tmp1 = ArrayForFFT[0];
-            tmp2 = ArrayForFFT[1];
-        }
-        graphPlotter.updateAxes(tmp1, tmp2);              //change this later to fft or scope array depending on which one is selected
-        graphPlotter.updateMinMax(tmp1, tmp2);
-        var data;
-        if (currentPage == 1) {
-            //split array into json objects
-            data = JSON.stringify({
-                "Ossilloscope": 1,//ossilloscope is 1
-                "OnOff": ArrayForScope[0],
-                "ACDC": ArrayForScope[1],
-                "Channel": ArrayForScope[2],
-                "edge": ArrayForScope[3],
-                "TimePerDiv": ArrayForScope[4],
-                "VoltagePerDiv": ArrayForScope[5],
-                "Trigger": ArrayForScope[6],
-                "frequency": ArrayForWaveform[0],
-                "dutyCycle": ArrayForWaveform[1],
-                "golfType": ArrayForWaveform[2]
-            });
-        }
-        if (currentPage == 2) {
-            data = JSON.stringify({
-                "FFT": 2, //FFT is 2
-                "OnOff": ArrayForScope[0],
-                "centreFrequency": ArrayForFFT[0],
-                "VoltPerDivDb": ArrayForFFT[1],
-                "Windowstyle": ArrayForFFT[2],
-                // "scanRate": ArrayForFFT[3],
-                "frequency": ArrayForWaveform[0],
-                "dutyCycle": ArrayForWaveform[1],
-                "golfType": ArrayForWaveform[2],
-            });
-        }
-        // console.log(JSON.parse(data));
-        websocket.send(data);
-        graphPlotter.updateGraph();
-    }, 50);
+    setTimeout(SendDataOnUpdate, 50);
 });
 
 function startStopUpdatingGraph(Value) {
@@ -458,7 +456,6 @@ function SwitchHandler(SwitchstateIndex) {
     return switchStateArray[SwitchstateIndex];
 }
 
-// 
 $('#on-off-switch').on("input", function () {
     indexInScopeArray = 0;
     SwitchstateIndex = 0;
@@ -520,8 +517,23 @@ $('#centreFrequencySlider').on("input change", function () {
         value = element.val()
     ArrayForFFT[indexInFFTArray] = parseInt(value);
     $('#centreFrequencySliderValue').text("Value : " + value + " Hz");
+    $('#CentreFrequencyInputField').val(parseInt(value))
+
 });
 
+$('#CentreFrequencyInputField').on("ipnut change", function () {
+    indexInWFGArray = 0;
+    var element = $('#CentreFrequencyInputField'),                                    
+        value = element.val()
+    ArrayForFFT[indexInWFGArray] = parseInt(value);
+    min = 10;
+    max = 500000;
+    if (value < min) value = min;
+    if (value > max) value = max;
+    $('#CentreFrequencyInputField').val(parseInt(value))
+    $('#centreFrequencySlider').val(parseInt(value))
+    $('#centreFrequencySliderValue').text("Value : " + value + " Hz");
+})
 $('#DbPerDivisionSlider').on("input change", function () {
     indexInFFTArray = 1;
     ValueDbPerDivision = RangeSliderHandler("DbPerDivisionSlider");
@@ -538,6 +550,7 @@ function changeWindowStyle() {
     let windowStyle = document.getElementById("window_style");
     let windowStyleValue = windowStyle.value;
     ArrayForFFT[indexInFFTArray] = windowStyleDict[windowStyleValue];
+    setTimeout(SendDataOnUpdate, 50);
 }
 
 // $('#scanRateSlider').on("input change", function () {
@@ -563,8 +576,10 @@ $('#FrequencyInputField').on("ipnut change", function () {
     var element = $('#FrequencyInputField'),                                    
         value = element.val()
     ArrayForWaveform[indexInWFGArray] = parseInt(value);
-    if (value < 10) value = 10;
-    if (value > 100000) value = 100000
+    min = 10;
+    max = 100000;
+    if (value < min) value = min;
+    if (value > max) value = max;
     $('#FrequencyInputField').val(parseInt(value))
     $('#frequencySlider').val(parseInt(value))
     $('#frequencySliderValue').text("Value : " + value + " Hz");
@@ -588,4 +603,5 @@ function changeGolfStyle() {
     let golfStyle = document.getElementById("golf_style");
     let golfStyleValue = golfStyle.value;
     ArrayForWaveform[indexInWFGArray] = golfStyleDict[golfStyleValue];
+    setTimeout(SendDataOnUpdate, 50);
 }
