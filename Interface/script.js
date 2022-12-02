@@ -270,7 +270,7 @@ class FFTGraph extends Graph {
             .data(JsonData)
             .enter()
             .append("rect")
-            .attr("x", function (d) { return tmpXaxis(d.x); })
+            .attr("x", function (d) {return tmpXaxis(d.x); })
             .attr("y", function (d) { 
                 if (TmpYaxis(d.y) < 0){
                     return TmpYaxis(minY);
@@ -291,25 +291,23 @@ class FFTGraph extends Graph {
             //     }
             // })
             .attr("height", function (d) { 
-                if (d.x >= maxX){
+                if (d.x >= maxX || height - TmpYaxis(d.y) < 0){
                     return 0;
                 }else if (TmpYaxis(d.y) < 0) {
                     return height;
-                  }
-                  else {
-                    return height - TmpYaxis(d.y);
-                  }
-                return height - TmpYaxis(d.y); 
-             })
+                }else{
+                   return height - TmpYaxis(d.y);
+                }
+})
             .attr("fill", "#69b3a2")
     }
 
     convertToJson(arr) {
         var result = '{"data":[';
         var multiplier = 1;
-        for (var i = 0; i < arr.length; i++) {
-            var tmpJson = '{"x":' + i * multiplier + ',"y":' + arr[i] + '}';
-            if (i != arr.length - 1) {
+        for (var i = 1; i <= arr.length; i++) {
+            var tmpJson = '{"x":' + i * multiplier + ',"y":' + arr[i-1] + '}';
+            if (i != arr.length) {
                 tmpJson += ',';
             }
             result += tmpJson;
