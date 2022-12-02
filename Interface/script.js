@@ -267,7 +267,7 @@ class FFTGraph extends Graph {
     async drawLine() {
         var tmpXaxis = this.xAxis;
         var TmpYaxis = this.YAxis;
-        var maxX  = this.maxX;
+        var maxX  = this.maxX/this.numTicksX;
         var minY = this.minY;
         //stationary function
         var height = this.height;
@@ -297,10 +297,9 @@ class FFTGraph extends Graph {
             //     }
             // })
             .attr("height", function (d) { 
-                if (d.x > maxX){
+                if (d.x >= maxX){
                     return 0;
-                }
-                if (TmpYaxis(d.y) < 0) {
+                }else if (TmpYaxis(d.y) < 0) {
                     return height;
                   }
                   else {
