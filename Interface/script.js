@@ -595,8 +595,8 @@ $('#dutycycleSlider').on("input change", function () {
 
 function changeGolfStyle() {
     var golfStyleDict = {
-        "sinus": 0,
-        "blok": 1,
+        "sine": 0,
+        "square": 1,
         "triangle": 2
     };
     indexInWFGArray = 2;
