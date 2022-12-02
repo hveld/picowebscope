@@ -32,26 +32,24 @@ const uint8_t switch_waveform_generator = 25;
 const uint8_t dac_offset = 26;
 WaveGen *wavegen;
 
+const int potPin = 34;
+int potValue = 0;
 int onOff = 1; //staat uit
 int ArrayForScope[] = {0,0,0,0,0,0,0};
 int ArrayForFFT[] = {0, 0, 0, 0,0};
 int ArrayForWaveform[] = {0, 0, 0};
 String message = "";
-void configurate(){
-  Serial.println("In configurate");
-  Serial.print(xPortGetCoreID());
-  Serial.print("/n");
-}
+
 // Initialize SPIFFS
 void initFS() {
   Serial.println("In fs");
   Serial.print(xPortGetCoreID());
   Serial.print("n/");
   if (!SPIFFS.begin()) {
-    Serial.println("An error has occurred while mounting SPIFFS");
+    //Serial.println("An error has occurred while mounting SPIFFS");
   }
   else{
-   Serial.println("SPIFFS mounted successfully");
+   //Serial.println("SPIFFS mounted successfully");
   }
 }
 
@@ -59,12 +57,12 @@ void initFS() {
 void initWiFi() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
-  Serial.print("Connecting to WiFi ..");
+  //Serial.print("Connecting to WiFi ..");
   while (WiFi.status() != WL_CONNECTED) {
-    Serial.print('.');
+    //Serial.print('.');
     delay(1000);
   }
-  Serial.println(WiFi.localIP());
+  //Serial.println(WiFi.localIP());
 }
 
 void notifyClients() {
@@ -75,9 +73,9 @@ void initWebSocket() {
   server.addHandler(&ws);
 }
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
-  Serial.print("Websocket handle");
-  Serial.print(xPortGetCoreID());
-  Serial.print("/n");
+  //Serial.print("Websocket handle");
+  //Serial.print(xPortGetCoreID());
+  //Serial.print("/n");
   AwsFrameInfo *info = (AwsFrameInfo*)arg;
   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) { 
     data[len] = 0; // Null terminate the string
@@ -152,14 +150,15 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     }
 
     }
+    }
  }
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
   switch (type) {
     case WS_EVT_CONNECT:
-      Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+      //Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
       break;
     case WS_EVT_DISCONNECT:
-      Serial.printf("WebSocket client #%u disconnected\n", client->id());
+      //Serial.printf("WebSocket client #%u disconnected\n", client->id());
       break;
     case WS_EVT_DATA:
       handleWebSocketMessage(arg, data, len);
@@ -174,18 +173,43 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
 void task1(void *parameter)
 {
     delay(5000);
-    Serial.println("In task1");
-    Serial.print(xPortGetCoreID());   
-    //test.dittt();
-
     String output1;
-    //serializeJson(doc2,output1);
-    //ws.textAll(output);
+    String fftString;
+    test.dittt();
     while (1)
     {    
         xSemaphoreTake(xMutex, portMAX_DELAY);
         if(ArrayForScope[3] == 1 || ArrayForFFT[0] == 1){
         //if(true){
+        if(fftVar == true){
+          Serial.println("TEST1");
+          Serial.println(ESP.getFreeHeap());
+          
+          DynamicJsonDocument docFFT(65536);
+          JsonArray dataFFT = docFFT.createNestedArray("data");
+          
+          Serial.println("TEST2");
+          Serial.println(ESP.getFreeHeap());
+          
+          Serial.println("TEST3");
+          Serial.println(ESP.getFreeHeap());
+          for(int i = 0; i < 1024; i++){
+            dataFFT.add(test.valuesFFT[i]);
+          }
+          Serial.println("TEST4");
+          Serial.println(ESP.getFreeHeap());
+          serializeJson(docFFT,fftString);
+          Serial.println("TEST5");
+          Serial.println(ESP.getFreeHeap());
+          ws.textAll(fftString);
+          dataFFT.clear();
+          fftString = "";
+          Serial.println("TEST6");
+          Serial.println(ESP.getFreeHeap());
+        }
+        else{
+          Serial.println("TEST-1-1");
+          Serial.println(ESP.getFreeHeap());
           DynamicJsonDocument doc2(65536);
           JsonArray data1 = doc2.createNestedArray("data");
           for(int i = 0; i < 1024; i++){
@@ -193,22 +217,27 @@ void task1(void *parameter)
           }
           serializeJson(doc2,output1);
           ws.textAll(output1);
+
+          Serial.println("TEST1-2");
+          Serial.println(ESP.getFreeHeap());
           data1.clear();
           output1 = "";
-          
+          Serial.println("TEST1-3");
+          Serial.println(ESP.getFreeHeap());
+        }
          }
          else{
         }
     xSemaphoreGive(xMutex);
-    vTaskDelay(200 / portTICK_PERIOD_MS);
+    vTaskDelay(50 / portTICK_PERIOD_MS);
     }
 }
 //task2 moet buffer 1 > buffer 2 en dan sturen
 void task2(void *parameter)
 {
   while(1){
-    if(ArrayForScope[3] == 1 || ArrayForFFT[0] == 1){
-    //if(true){
+    //if(ArrayForScope[3] == 1 || ArrayForFFT[0] == 1){
+    if(true){
       xSemaphoreTake(xMutex, portMAX_DELAY);
       for(int i = 0; i < 1024; i++){
         int randNumber = random(10, 20);
@@ -218,11 +247,29 @@ void task2(void *parameter)
     else{
     }
     xSemaphoreGive(xMutex);
-    vTaskDelay(200 / portTICK_PERIOD_MS); 
+    vTaskDelay(50 / portTICK_PERIOD_MS); 
   }
+}
+void taskRealSamples(void *parameter){
+  while(1){
+    if(true){
+    //if(ArrayForScope[3] == 1 || ArrayForFFT[0] == 1){
+    xSemaphoreTake(xMutex, portMAX_DELAY);
+    for(int i = 0; i <1024; i++){
+      potValue = analogRead(potPin);
+      //Serial.println(potValue);
+      //delayMicroseconds(976);
+      sampleArray[i] = potValue;
+    }
+  }
+  else{}
+   xSemaphoreGive(xMutex);
+   vTaskDelay(50 / portTICK_PERIOD_MS); 
+}
 }
 void setup() {
   Serial.begin(115200);
+  //Serial.begin(1000000);
   initFS();
   Serial.print(SSE_MAX_QUEUED_MESSAGES);
   Serial.print("Setting AP (Access Point)…");
@@ -243,24 +290,25 @@ void setup() {
   xTaskCreatePinnedToCore(
              task1, /* Task function. */
              "Task1",   /* name of task. */
-             30000,     /* Stack size of task */
+             10000,     /* Stack size of task */
              NULL,      /* parameter of the task */
              1,         /* priority of the task */
-             &Task1,    /* Task handle to keep track of created task */
+             &Task1,    /* 1ask handle to keep track of created task */
              1);        /* pin task to core 0 */
   xTaskCreatePinnedToCore(
-             task2, /* Task function. */
+             taskRealSamples, /* Task function. */
              "Task2",   /* name of task. */
-             30000,     /* Stack size of task */
+             10000,     /* Stack size of task */
              NULL,      /* parameter of the task */
              1,         /* priority of the task */
              &Task2,    /* Task handle to keep track of created task */
              1);        /* pin task to core 0 */
-  static SPIClass spi(HSPI);
-  wavegen = new WaveGen(switch_waveform_generator, dac_offset, spi, ad9833_sclk_pin, ad9833_sdata_pin, ad9833_fsync_pin); 
+   Serial.println("setup klaar");
 }
 void loop() {
-
+//    potValue = analogRead(potPin);
+//    Serial.println(potValue);
+//    delay(1);
 }
 void generateSignal(){
   //generate the signal

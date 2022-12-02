@@ -6,11 +6,12 @@
 #include <stdlib.h>
 #include <math.h>
 class Test{
-    public: 
-        float valuesFFT[1024]; 
+    public:
+    // global variable of samples
+        float valuesFFT[1024];
         Test();
         int addTwoInts();
-        void dittt();
+        void dittt(float *data1);
     private:
 };
 #endif

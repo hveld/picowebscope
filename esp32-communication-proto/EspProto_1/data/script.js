@@ -2,7 +2,7 @@ ArrayForScope = [0, 0, 0, 0, 100, 10, 0,]
 ArrayForFFT = [1, 10, 2, 0]
 ArrayForWaveform = [0, 0, 0]
 var dataArray = [];
-var delayBetweenCalls = 1000;
+var delayBetweenCalls = 50;
 
 //const gateway = 'ws://localhost:8000';        //for the python webserver
 var gateway = `ws://${window.location.hostname}/ws`;     //for the esp webserver
