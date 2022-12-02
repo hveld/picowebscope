@@ -2,7 +2,7 @@ ArrayForScope = [0, 0, 0, 0, 100, 10, 0,]
 ArrayForFFT = [10, 10, 2, 0]
 ArrayForWaveform = [10, 1, 0]
 var dataArray = [];
-var delayBetweenCalls = 1000;
+var delayBetweenCalls = 30;
 
 const gateway = 'ws://localhost:8000';        //for the python webserver
 // var gateway = `ws://${window.location.hostname}/ws`;     //for the esp webserver
@@ -21,9 +21,6 @@ function initWebSocket() {
     websocket.onopen = onOpen;
     websocket.onclose = onClose;
     websocket.onmessage = onMessage;
-}
-function Send_data() {
-    websocket.send("request_data");
 }
 
 function onOpen(event) {
@@ -169,6 +166,11 @@ class Graph {
         this.maxX = maxX * this.numTicksX;
         this.minY = minY * this.numTicksY;
     }
+
+    updateGraph() {
+        this.removeDataPoints()
+        this.drawLine()
+    }
 }
 class OscilloscopeGraph extends Graph {
     constructor(nameOfChart, widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
@@ -179,11 +181,7 @@ class OscilloscopeGraph extends Graph {
         this.drawLinesInGraph();
         this.updateGraph();
     }
-    updateGraph() {
-        this.removeDataPoints()
-        this.drawLine()
-    }
-
+    
     async drawLine() {
         var multiplier = 4;
         var strokeWidth = 1,
@@ -239,10 +237,6 @@ class FFTGraph extends Graph {
 
     removeDataPoints() {
         this.svg.selectAll("rect").remove();
-    }
-    updateGraph() {
-        this.removeDataPoints()
-        this.drawLine()
     }
 
     updateAxes(AxisNumberOnX, AxisNumberOnY) {
