@@ -511,7 +511,6 @@ $('#centreFrequencySlider').on("input change", function () {
     ArrayForFFT[indexInFFTArray] = parseInt(value);
     $('#centreFrequencySliderValue').text("Value : " + value + " Hz");
     $('#CentreFrequencyInputField').val(parseInt(value))
-
 });
 
 $('#CentreFrequencyInputField').on("ipnut change", function () {
@@ -526,6 +525,7 @@ $('#CentreFrequencyInputField').on("ipnut change", function () {
     $('#CentreFrequencyInputField').val(parseInt(value))
     $('#centreFrequencySlider').val(parseInt(value))
     $('#centreFrequencySliderValue').text("Value : " + value + " Hz");
+    setTimeout(SendDataOnUpdate, 50);
 })
 $('#DbPerDivisionSlider').on("input change", function () {
     indexInFFTArray = 1;
@@ -576,6 +576,7 @@ $('#FrequencyInputField').on("ipnut change", function () {
     $('#FrequencyInputField').val(parseInt(value))
     $('#frequencySlider').val(parseInt(value))
     $('#frequencySliderValue').text("Value : " + value + " Hz");
+    setTimeout(SendDataOnUpdate, 50);
 })
 
 $('#dutycycleSlider').on("input change", function () {
