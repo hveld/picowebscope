@@ -393,14 +393,15 @@ function FFTScopeChange() {
     var scope = document.getElementById("scope");
     var FFT = document.getElementById("FFT");
     if (scope.style.display === "none") {
+        dataArray = [];
         scope.style.display = "block";
         FFT.style.display = "none";
         graphPlotter.removeGraph();
         graphPlotter = oscilloscopePlotter;
         graphPlotter.updateAxes(ArrayForScope[4], ArrayForScope[5]);
         currentPage = 1;
-
     } else {
+        dataArray = [];
         scope.style.display = "none";
         FFT.style.display = "block";
         graphPlotter.removeGraph();
