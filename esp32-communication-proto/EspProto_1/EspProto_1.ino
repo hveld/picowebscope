@@ -10,12 +10,9 @@
 #include <Arduino_JSON.h>
 #include "Test.h"
 #include "wavegen.h"
-
-const char* ssid = "EspAC";
-
+#include "wifi_config.h"
 
 
-const char* password = "12345678";
 TaskHandle_t Task1;
 TaskHandle_t Task2;
 SemaphoreHandle_t xMutex = NULL;
