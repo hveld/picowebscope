@@ -8,10 +8,12 @@
 class Test{
     public:
     // global variable of samples
-        float valuesFFT[1024];
+        float samples[1024];
+        long valuesFFT[1024];
         Test();
+        void clearFFT();
         int addTwoInts();
-        void dittt(float *data1);
+        void dittt();
     private:
 };
 #endif

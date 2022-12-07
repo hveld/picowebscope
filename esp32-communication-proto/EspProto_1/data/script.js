@@ -2,10 +2,10 @@ ArrayForScope = [0, 0, 0, 0, 100, 10, 0,]
 ArrayForFFT = [10, 10, 2, 0]
 ArrayForWaveform = [10, 1, 0]
 var dataArray = [];
-var delayBetweenCalls = 30;
+var delayBetweenCalls = 10;
 
-const gateway = 'ws://localhost:8000';        //for the python webserver
-// var gateway = `ws://${window.location.hostname}/ws`;     //for the esp webserver
+//const gateway = 'ws://localhost:8000';        //for the python webserver
+var gateway = `ws://${window.location.hostname}/ws`;     //for the esp webserver
 
 var websocket;
 window.addEventListener('load', onload);
@@ -31,6 +31,7 @@ function onClose(event) {
     setTimeout(initWebSocket, 2000);
 }
 function onMessage(event) {
+    console.log(event.data)
     dataArray = JSON.parse(event.data).data
 }
 
@@ -376,7 +377,9 @@ function SendDataOnUpdate () {
 
 $('*').on('mouseup', function (e) {
     e.stopImmediatePropagation();
+    console.time("test_timer");
     setTimeout(SendDataOnUpdate, 50);
+    console.timeEnd("test_timer");
 });
 
 function startStopUpdatingGraph(Value) {
