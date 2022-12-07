@@ -32,6 +32,7 @@ const uint8_t ad9833_sdata_pin = 16;
 const uint8_t ad9833_fsync_pin = 4;
 const uint8_t switch_waveform_generator = 25;
 const uint8_t dac_offset = 26;
+static SPIClass hspi(HSPI);
 WaveGen *wavegen;
 
 const int potPin = 34;
@@ -122,17 +123,17 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     Serial.println(ArrayForWaveform[1]);
     Serial.print("golftype: ");
     Serial.println(ArrayForWaveform[2]);
-//    switch (ArrayForWaveform[2]) {
-//      case 0: // sine
-//        wavegen->sine(ArrayForWaveform[0]);
-//        break;
-//      case 1: // square
-//        wavegen->square(ArrayForWaveform[0], (float)ArrayForWaveform[1] / 100);
-//        break;
-//      case 2: // triangle
-//        wavegen->triangle(ArrayForWaveform[0]);
-//        break;
-//    }
+    switch (ArrayForWaveform[2]) {
+      case 0: // sine
+        wavegen->sine(ArrayForWaveform[0]);
+        break;
+      case 1: // square
+        wavegen->square(ArrayForWaveform[0], (float)ArrayForWaveform[1] / 100);
+        break;
+      case 2: // triangle
+        wavegen->triangle(ArrayForWaveform[0]);
+        break;
+    }
 
   }
 }
@@ -287,6 +288,7 @@ void setup() {
     1,         /* priority of the task */
     &Task2,    /* Task handle to keep track of created task */
     1);        /* pin task to core 0 */
+  wavegen = new WaveGen(switch_waveform_generator, dac_offset, hspi, ad9833_sclk_pin, ad9833_sdata_pin, ad9833_fsync_pin);
   Serial.println("setup klaar");
 }
 void loop() {
