@@ -2,6 +2,7 @@ ArrayForScope = [0, 0, 0, 0, 100, 10, 0,]
 ArrayForFFT = [10, 10, 2, 0]
 ArrayForWaveform = [10, 1, 0]
 var dataArray = [];
+var dataArray2 = [];
 var delayBetweenCalls = 10;
 
 //const gateway = 'ws://localhost:8000';        //for the python webserver
@@ -10,11 +11,9 @@ var gateway = `ws://${window.location.hostname}/ws`;     //for the esp webserver
 var websocket;
 window.addEventListener('load', onload);
 var ConnectionState = document.getElementById('ConnectionState');
-
 function onload(event) {
     initWebSocket();
 }
-
 function initWebSocket() {
     ConnectionState.innerHTML = 'Establishing Connection...';
     websocket = new WebSocket(gateway);
@@ -22,7 +21,6 @@ function initWebSocket() {
     websocket.onclose = onClose;
     websocket.onmessage = onMessage;
 }
-
 function onOpen(event) {
     ConnectionState.innerHTML = 'Connection Opened';
 }
@@ -31,10 +29,12 @@ function onClose(event) {
     setTimeout(initWebSocket, 2000);
 }
 function onMessage(event) {
-    console.log(event.data)
     dataArray = JSON.parse(event.data).data
+    dataArray2 = JSON.parse(event.data).data1
+    console.log(event.data)
+    //console.log(JSON.parse(event.data).data1.length)
+    //console.log(JSON.parse(event.data).data.length)
 }
-
 class Graph {
     constructor(nameOfChart, widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
         this.nameOfChart = nameOfChart;
@@ -52,9 +52,8 @@ class Graph {
         this.height = this.height * this.heightRatio;
         this.graphPoints = [];
     }
-
     createAxes(axisNumberOnX, axisNumberOnY) {
-        var unitArray = ["us/div", "s/div", "ms/div"];
+        var unitArray = ["us/div", "s/div", "ms/div"];              //calculate the number of units on the x axis
         var unit = unitArray[0];
         if (Number.isInteger(axisNumberOnX / 10 ** 6)) {
             unit = unitArray[unitArray.length - 2];
@@ -65,7 +64,7 @@ class Graph {
         }
         this.xAxisName = unit;
 
-        unitArray = ["mV/div", "V/div"];
+        unitArray = ["mV/div", "V/div"];                            //calculate the number of units on the y axis
         var unit = unitArray[0];
         if (Number.isInteger(axisNumberOnY / 10 ** 6)) {
             unit = unitArray[unitArray.length - 2];
@@ -86,7 +85,6 @@ class Graph {
         this.YAxis = y;
         return;
     }
-
     drawLinesInGraph() {
         this.svg = d3.select("#Chart").append("svg")                                                                  // change this to the name of the chart?                         
             .attr("width", this.width + this.margin.left + this.margin.right)
@@ -133,14 +131,12 @@ class Graph {
             .style("text-anchor", "middle")
             .text(this.yAxisName);
     }
-
     updateAxes(AxisNumberOnX, AxisNumberOnY) {
         this.removeGraph();
         this.createAxes(AxisNumberOnX, AxisNumberOnY);
         this.drawLinesInGraph();
         this.updateGraph();
     }
-
     removeGraph() {
         d3.select("svg").remove();
     }
@@ -150,7 +146,6 @@ class Graph {
         }
         this.graphPoints = [];
     }
-
     Conversion(Value, minDomain, maxDomain, axis) {                                         //can be deleted later
         var range = this.width;
         if (axis == 'y')
@@ -167,7 +162,6 @@ class Graph {
         this.maxX = maxX * this.numTicksX;
         this.minY = minY * this.numTicksY;
     }
-
     updateGraph() {
         this.removeDataPoints()
         this.drawLine()
@@ -182,20 +176,41 @@ class OscilloscopeGraph extends Graph {
         this.drawLinesInGraph();
         this.updateGraph();
     }
+    updateGraph() {
+        console.time("testTime")
+        this.removeDataPoints()
+        this.drawLine(0)
+        this.drawLine(1)
+        console.timeEnd("testTime")
+    }
     
-    async drawLine() {
+     drawLine(line) {
         var multiplier = 4;
+        var ArrayInDrawLine = [];
         var strokeWidth = 1,
             minX = 0,                               //this needs to be auatomated later. These values must be given from the esp.
             maxX = this.maxX,
             minY = this.minY,
             maxY = 0;
+        var color = "rgb(0,255,0)";
+        console.log(line)
+        if (line){
+            color = "rgb(255,0,0)";
+            ArrayInDrawLine = dataArray; 
+            dataArray = []
+
+        }else{
+            color = "rgb(0,255,0)";
+            ArrayInDrawLine = dataArray2;
+            dataArray2 = []
+        }
+        console.log(ArrayInDrawLine)
 
         var x1, x2, y1, y2 = 0;
         //stationary function
-        for (var i = 0; i < dataArray.length - 1; i++) {
-            y1 = dataArray[i];                                                                        //may be possible to make this more readable with scale clamping
-            y2 = dataArray[i + 1];
+        for (var i = 0; i < ArrayInDrawLine.length - 1; i++) {
+            y1 = ArrayInDrawLine[i];                                                                        //may be possible to make this more readable with scale clamping
+            y2 = ArrayInDrawLine[i + 1];
             if (y1 < minY) {
                 var x1Temp = i*multiplier;
                 var x2Temp = (i+1)*multiplier;
@@ -207,12 +222,12 @@ class OscilloscopeGraph extends Graph {
                     x1 = this.Conversion(i * multiplier, minX, maxX, 'x');
                     x2 = this.Conversion((i + 1) * multiplier, minX, maxX, 'x');
                 }
-                y1 = this.Conversion(dataArray[i], minY, maxY, 'y');
+                y1 = this.Conversion(ArrayInDrawLine[i], minY, maxY, 'y');
                 if (y2 > minY) {
                     y2 = minY;
                     y2 = this.Conversion(y2, minY, maxY, 'y');
                 } else {
-                    y2 = this.Conversion(dataArray[i + 1], minY, maxY, 'y');
+                    y2 = this.Conversion(ArrayInDrawLine[i + 1], minY, maxY, 'y');
                 }
                 this.graph_line = this.svg.append("line")
                     .attr("id", "plotted_line")
@@ -220,18 +235,19 @@ class OscilloscopeGraph extends Graph {
                     .attr("y1", y1)
                     .attr("x2", x2)
                     .attr("y2", y2)
-                    .style("stroke", "rgb(0,255,0)")
+                    .style("stroke", color)
                     .style("stroke-width", strokeWidth);
                 this.graphPoints.push(this.graph_line);
             }
         }
     }
+
 }
 
 class FFTGraph extends Graph {
     constructor(nameOfChart, widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
         super(nameOfChart, widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY);
-        this.createAxes(ArrayForFFT[0], ArrayForFFT[1]);                        // change this later        
+        this.createAxes(ArrayForFFT[0], ArrayForFFT[1]*this.numTicksY);
         this.drawLinesInGraph();
         this.updateGraph();
     }
@@ -271,7 +287,8 @@ class FFTGraph extends Graph {
             .data(JsonData)
             .enter()
             .append("rect")
-            .attr("x", function (d) {return tmpXaxis(d.x); })
+            .attr("x", function (d) {
+                return tmpXaxis(d.x); })
             .attr("y", function (d) { 
                 if (TmpYaxis(d.y) < 0){
                     return TmpYaxis(minY);
@@ -281,16 +298,22 @@ class FFTGraph extends Graph {
                   }
                 return TmpYaxis(d.y);
             })
-            .attr("width", function (d) { return (tmpXaxis(d.x + 1) - tmpXaxis(d.x)); })
-            // .attr("width", function (d) {
-            //     try {
-            //         var next = dataArray[dataArray.indexOf(d) + 1];
-            //         return (tmpXaxis(next.x) - tmpXaxis(d.x))
-            //     }
-            //     catch {
-            //         //continue
-            //     }
-            // })
+            // .attr("width", function (d) { return (tmpXaxis(d.x + 1) - tmpXaxis(d.x)); })
+            .attr("width", function (d) {
+                try {
+                    var next = dataArray[dataArray.indexOf(d.x) + 1];
+                    //return (tmpXaxis(next) - tmpXaxis(d.x))
+                    //console.log(dataArray[dataArray.indexOf(d.x)])
+                    console.log("hi")
+                    console.log(tmpXaxis(d.x))
+                    return 12*(tmpXaxis(d.x + 1) - tmpXaxis(d.x));
+                    //return tmpXaxis((dataArray.indexOf(d.x)+9.77)/100)
+                    //return tmpXaxis(dataArray.indexof(d.x)+9.77)
+                }
+                catch {
+                    //continue
+                }
+            })
             .attr("height", function (d) { 
                 if (d.x >= maxX || height - TmpYaxis(d.y) < 0){
                     return 0;
@@ -299,29 +322,30 @@ class FFTGraph extends Graph {
                 }else{
                    return height - TmpYaxis(d.y);
                 }
-})
+})           
             .attr("fill", "#69b3a2")
-    }
+        }
 
     convertToJson(arr) {
         var result = '{"data":[';
-        var multiplier = 1;
-        for (var i = 1; i <= arr.length; i++) {
-            var tmpJson = '{"x":' + i * multiplier + ',"y":' + arr[i-1] + '}';
-            if (i != arr.length) {
+        var multiplier = 9.77;
+        for (var i = 0; i < arr.length; i++) {
+            var tmpJson = '{"x":' + i * multiplier + ',"y":' + arr[i] + '}';
+            if (i+1 != arr.length) {
                 tmpJson += ',';
             }
             result += tmpJson;
         }
+
         result += ']}';
         result = JSON.parse(result).data;
+        console.log(result)
         return result;
     }
 }
-
 //code that handles all the graph stuff
 oscilloscopePlotter = new OscilloscopeGraph("#ScopeChart", 0.6, 0.6, "us/div", "mV/div", 10, 8);
-FFTPlotter = new FFTGraph("FFTChart", 0.6, 0.6, "Hz", "V", 10, 8);
+FFTPlotter = new FFTGraph("FFTChart", 0.6, 0.6, "Hz", "mV", 10, 8);
 graphPlotter = oscilloscopePlotter;
 FFTScopeChange();
 var refreshSentDataId;
@@ -338,7 +362,7 @@ function SendDataOnUpdate () {
         tmp1 = ArrayForFFT[0];
         tmp2 = ArrayForFFT[1];
     }
-    graphPlotter.updateAxes(tmp1, tmp2);              //change this later to fft or scope array depending on which one is selected
+    graphPlotter.updateAxes(tmp1, tmp2);
     graphPlotter.updateMinMax(tmp1, tmp2);
     var data;
     if (currentPage == 1) {
@@ -364,7 +388,7 @@ function SendDataOnUpdate () {
             "centreFrequency": ArrayForFFT[0],
             "VoltPerDivDb": ArrayForFFT[1],
             "Windowstyle": ArrayForFFT[2],
-            // "scanRate": ArrayForFFT[3],
+            "channelForFFT": ArrayForFFT[3],
             "frequency": ArrayForWaveform[0],
             "dutyCycle": ArrayForWaveform[1],
             "golfType": ArrayForWaveform[2],
@@ -377,9 +401,7 @@ function SendDataOnUpdate () {
 
 $('*').on('mouseup', function (e) {
     e.stopImmediatePropagation();
-    console.time("test_timer");
     setTimeout(SendDataOnUpdate, 50);
-    console.timeEnd("test_timer");
 });
 
 function startStopUpdatingGraph(Value) {
@@ -397,6 +419,7 @@ function FFTScopeChange() {
     var FFT = document.getElementById("FFT");
     if (scope.style.display === "none") {
         dataArray = [];
+        dataArray2 = [];
         scope.style.display = "block";
         FFT.style.display = "none";
         graphPlotter.removeGraph();
@@ -405,11 +428,13 @@ function FFTScopeChange() {
         currentPage = 1;
     } else {
         dataArray = [];
+        dataArray2 = [];
+
         scope.style.display = "none";
         FFT.style.display = "block";
         graphPlotter.removeGraph();
         graphPlotter = FFTPlotter;
-        graphPlotter.updateAxes(ArrayForFFT[1], ArrayForFFT[2]);
+        graphPlotter.updateAxes(ArrayForFFT[0], ArrayForFFT[1]);
         currentPage = 2;
     }
 }
@@ -443,7 +468,7 @@ function RangeSliderHandler(SliderId) {
     return returnValue;
 }
 
-switchStateArray = [false, false, false, false]
+switchStateArray = [false, false, false, false,false]
 function SwitchHandler(SwitchstateIndex) {
     if (switchStateArray[SwitchstateIndex] == false) {
         switchStateArray[SwitchstateIndex] = true;
@@ -475,6 +500,7 @@ $('#channel').on("input", function () {
     ValueSwitchChannel = SwitchHandler(SwitchstateIndex);
     ArrayForScope[indexInScopeArray] = ValueSwitchChannel ? 1 : 0;
 });
+
 
 $('#edge').on("input", function () {
     indexInScopeArray = 3;
@@ -536,7 +562,12 @@ $('#DbPerDivisionSlider').on("input change", function () {
     ValueDbPerDivision = RangeSliderHandler("DbPerDivisionSlider");
     ArrayForFFT[indexInFFTArray] = parseInt(ValueDbPerDivision);
 });
-
+$('#channelForFFT').on("input", function () {
+    indexInFFTArray = 3;
+    SwitchstateIndex = 4;
+    ValueSwitchChannel = SwitchHandler(SwitchstateIndex);
+    ArrayForFFT[indexInFFTArray] = ValueSwitchChannel ? 1 : 0;
+});
 function changeWindowStyle() {
     var windowStyleDict = {
         "flattop": 0,
