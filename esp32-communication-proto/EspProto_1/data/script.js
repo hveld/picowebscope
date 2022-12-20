@@ -14,13 +14,27 @@ var ConnectionState = document.getElementById('ConnectionState');
 function onload(event) {
     initWebSocket();
 }
-function initWebSocket() {
-    ConnectionState.innerHTML = 'Establishing Connection...';
-    websocket = new WebSocket(gateway);
-    websocket.onopen = onOpen;
-    websocket.onclose = onClose;
-    websocket.onmessage = onMessage;
-}
+
+function checkConnection() {
+        console.log("checking connection");
+        if (websocket.readyState == 1) {
+            ConnectionState.innerHTML = 'Connection Open';
+        } else {
+            ConnectionState.innerHTML = 'Connection Closed';
+        }
+    }
+
+    function initWebSocket() {
+        ConnectionState.innerHTML = 'Establishing Connection...';
+        websocket = new WebSocket(gateway);
+        websocket.onopen = onOpen;
+        websocket.onclose = onClose;
+        websocket.onmessage = onMessage;
+        setInterval(function () {
+            checkConnection()
+        }, 1000);
+    }
+    
 function onOpen(event) {
     ConnectionState.innerHTML = 'Connection Opened';
 }
@@ -32,6 +46,7 @@ function onMessage(event) {
     dataArray = JSON.parse(event.data).data
     dataArray2 = JSON.parse(event.data).data1
     console.log(event.data)
+    graphPlotter.updateGraph()
     //console.log(JSON.parse(event.data).data1.length)
     //console.log(JSON.parse(event.data).data.length)
 }
@@ -183,7 +198,52 @@ class OscilloscopeGraph extends Graph {
         this.drawLine(1)
         console.timeEnd("testTime")
     }
-    
+    drawLinesInGraph() {
+        this.svg = d3.select("#Chart").append("svg")                                                                  // change this to the name of the chart?                         
+            .attr("width", this.width + this.margin.left + this.margin.right)
+            .attr("height", this.height + this.margin.top + this.margin.bottom)
+            .style("filter", "url(#I)")
+            .append("g")
+            .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+        
+        this.svg.append("g")                             //draws lines vertically and numbers x-axis
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + this.height + ")")
+            .call(d3.axisBottom(this.xAxis).tickSize(-this.height))
+            .selectAll("line")
+            .style("stroke-dasharray", function (d, i) {
+                var dashArray = []
+                for (var k = 0; k < this.numTicksY; k += 1) {
+                    dashArray.push((this.height / this.numTicksY - (this.tickSpace / 2) - (k > 0 ? (this.tickSpace / 2) : 0)));
+                    dashArray.push(this.tickSpace)
+                }
+                return dashArray.join(",")
+            })
+        this.svg.append("text")                          // text label for the x axis
+            .attr("x", this.width / 2)
+            .attr("y", this.height + 30)
+            .style("text-anchor", "middle")
+            .text(this.xAxisName);
+
+        this.svg.append("g")                             //draws lines horizontally and numbers y-axis
+            .attr("class", "y axis")
+            .call(d3.axisLeft(this.YAxis).tickSize(-this.width))
+            .selectAll("line")
+            .style("stroke-dasharray", function (d, i) {
+                var dashArray = []
+                for (var k = 0; k < this.numTicksX; k += 1) {
+                    dashArray.push((this.width / this.numTicksX - (this.tickSpace / 2) - (k > 0 ? (this.tickSpace / 2) : 0)));
+                    dashArray.push(this.tickSpace)
+                }
+                return dashArray.join(",")
+            })
+
+        this.svg.append("text")                          // text label for the y axis
+            .attr("x", -50)
+            .attr("y", this.height / 2)
+            .style("text-anchor", "middle")
+            .text(this.yAxisName);
+    }
      drawLine(line) {
         var multiplier = 4;
         var ArrayInDrawLine = [];
@@ -251,6 +311,53 @@ class FFTGraph extends Graph {
         this.drawLinesInGraph();
         this.updateGraph();
     }
+    drawLinesInGraph() {
+        this.svg = d3.select("#Chart").append("svg")                                                                  // change this to the name of the chart?                         
+            .attr("width", this.width + this.margin.left + this.margin.right)
+            .attr("height", this.height + this.margin.top + this.margin.bottom)
+            .style("filter", "url(#I)")
+            .append("g")
+            .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+        
+        this.svg.append("g")                             //draws lines vertically and numbers x-axis
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + this.height + ")")
+            .call(d3.axisBottom(this.xAxis).tickSize(-this.height).ticks(this.numTicksX,".2s"))
+            .selectAll("line")
+            .style("stroke-dasharray", function (d, i) {
+                var dashArray = []
+                for (var k = 0; k < this.numTicksY; k += 1) {
+                    dashArray.push((this.height / this.numTicksY - (this.tickSpace / 2) - (k > 0 ? (this.tickSpace / 2) : 0)));
+                    dashArray.push(this.tickSpace)
+                }
+                return dashArray.join(",")
+            })
+        
+        this.svg.append("text")                          // text label for the x axis
+            .attr("x", this.width / 2)
+            .attr("y", this.height + 30)
+            .style("text-anchor", "middle")
+            .text(this.xAxisName);
+
+        this.svg.append("g")                             //draws lines horizontally and numbers y-axis
+            .attr("class", "y axis")
+            .call(d3.axisLeft(this.YAxis).tickSize(-this.width).ticks(this.numTicksY,".2s"))
+            .selectAll("line")
+            .style("stroke-dasharray", function (d, i) {
+                var dashArray = []
+                for (var k = 0; k < this.numTicksX; k += 1) {
+                    dashArray.push((this.width / this.numTicksX - (this.tickSpace / 2) - (k > 0 ? (this.tickSpace / 2) : 0)));
+                    dashArray.push(this.tickSpace)
+                }
+                return dashArray.join(",")
+            })
+
+        this.svg.append("text")                          // text label for the y axis
+            .attr("x", -50)
+            .attr("y", this.height / 2)
+            .style("text-anchor", "middle")
+            .text(this.yAxisName);
+    }
 
     removeDataPoints() {
         this.svg.selectAll("rect").remove();
@@ -283,11 +390,15 @@ class FFTGraph extends Graph {
         //stationary function
         var height = this.height;
         var JsonData = this.convertToJson(dataArray);
+        console.log(JsonData);
         this.svg.selectAll("mybar")
             .data(JsonData)
             .enter()
             .append("rect")
             .attr("x", function (d) {
+                if(d.x === 0){
+                    return tmpXaxis(1);
+                }
                 return tmpXaxis(d.x); })
             .attr("y", function (d) { 
                 if (TmpYaxis(d.y) < 0){
@@ -301,14 +412,12 @@ class FFTGraph extends Graph {
             // .attr("width", function (d) { return (tmpXaxis(d.x + 1) - tmpXaxis(d.x)); })
             .attr("width", function (d) {
                 try {
+                    if(d.x === 0){
+                        return (tmpXaxis(1 +9.77)-tmpXaxis(1));
+                    }
                     var next = dataArray[dataArray.indexOf(d.x) + 1];
-                    //return (tmpXaxis(next) - tmpXaxis(d.x))
-                    //console.log(dataArray[dataArray.indexOf(d.x)])
-                    console.log("hi")
-                    console.log(tmpXaxis(d.x))
-                    return 12*(tmpXaxis(d.x + 1) - tmpXaxis(d.x));
-                    //return tmpXaxis((dataArray.indexOf(d.x)+9.77)/100)
-                    //return tmpXaxis(dataArray.indexof(d.x)+9.77)
+                    // return 9.77*(tmpXaxis(d.x + 1) - tmpXaxis(d.x));
+                    return (tmpXaxis(d.x +9.77)-tmpXaxis(d.x));
                 }
                 catch {
                     //continue
@@ -322,9 +431,9 @@ class FFTGraph extends Graph {
                 }else{
                    return height - TmpYaxis(d.y);
                 }
-})           
+})
             .attr("fill", "#69b3a2")
-        }
+    }
 
     convertToJson(arr) {
         var result = '{"data":[';
@@ -336,13 +445,12 @@ class FFTGraph extends Graph {
             }
             result += tmpJson;
         }
-
         result += ']}';
         result = JSON.parse(result).data;
-        console.log(result)
         return result;
     }
 }
+
 //code that handles all the graph stuff
 oscilloscopePlotter = new OscilloscopeGraph("#ScopeChart", 0.6, 0.6, "us/div", "mV/div", 10, 8);
 FFTPlotter = new FFTGraph("FFTChart", 0.6, 0.6, "Hz", "mV", 10, 8);
@@ -403,16 +511,6 @@ $('*').on('mouseup', function (e) {
     e.stopImmediatePropagation();
     setTimeout(SendDataOnUpdate, 50);
 });
-
-function startStopUpdatingGraph(Value) {
-    if (Value == true) {
-        updateGraphID = setInterval(function () {
-            graphPlotter.updateGraph()
-        }, delayBetweenCalls);
-    } else {
-        clearInterval(updateGraphID); //stop updating graph
-    }
-}
 
 function FFTScopeChange() {
     var scope = document.getElementById("scope");
@@ -483,7 +581,6 @@ $('#on-off-switch').on("input", function () {
     SwitchstateIndex = 0;
     ValueSwitchOnOffSwitch = SwitchHandler(SwitchstateIndex);
     ArrayForScope[indexInScopeArray] = ValueSwitchOnOffSwitch ? 1 : 0;
-    startStopUpdatingGraph(ValueSwitchOnOffSwitch);
 });
 
 

@@ -207,8 +207,8 @@ void task1FFT(void *parameter) {
         {
           float mag = sqrt(pow(real_fft_plan->output[2 * k], 2) + pow(real_fft_plan->output[2 * k + 1], 2)) / 1;
           int mag1 = mag/10;
-          //float freq = k*5.0/TOTAL_TIME;
-          //sprintf(print_buf,"%f Hz : %d", mag, mag1);
+          //float freq = k*9.77/TOTAL_TIME;
+          //sprintf(print_buf,"%f Hz : %d", mag, freq);
           //Serial.println(print_buf);
           dataFFT.add(mag1);
         }
@@ -236,7 +236,6 @@ void task1FFT(void *parameter) {
           dataOSS2.add(samplesTest);
         }
         serializeJson(docOSS, outputOSS);
-        Serial.println(ESP.getFreeHeap());
         ws.textAll(outputOSS);
         clearChannel(1);
         docOSS.clear();
@@ -244,13 +243,12 @@ void task1FFT(void *parameter) {
         //dataOSS2.clear();
         outputOSS = "";
         Serial.println("Test2");
-        Serial.println(ESP.getFreeHeap());
       }
     }
     else {
     }
     xSemaphoreGive(xMutex);
-    vTaskDelay(50 / portTICK_PERIOD_MS);
+    vTaskDelay(200 / portTICK_PERIOD_MS);
   }
 }
 void task2(void *parameter)
@@ -299,7 +297,6 @@ void clearChannel(int channel_number) {
 void taskRealSamples(void *parameter) {
   while (1) {
     xSemaphoreTake(xMutex, portMAX_DELAY);
-    //if (true) {
     if (ArrayForScope[3] == 1 || ArrayForFFT[0] == 1) {
       for (int i = 0; i < 1024; i++) {
         potValue = analogRead(potPin);
@@ -310,7 +307,7 @@ void taskRealSamples(void *parameter) {
     }
     else {}
     xSemaphoreGive(xMutex);
-    vTaskDelay(50 / portTICK_PERIOD_MS);
+    vTaskDelay(200 / portTICK_PERIOD_MS);
   }
 }
 void setup() {
