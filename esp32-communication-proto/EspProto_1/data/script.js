@@ -3,7 +3,7 @@ ArrayForFFT = [10, 10, 2, 0]
 ArrayForWaveform = [10, 1, 0]
 var dataArray = [];
 var dataArray2 = [];
-var delayBetweenCalls = 10;
+var delayBetweenCalls =100;
 
 //const gateway = 'ws://localhost:8000';        //for the python webserver
 var gateway = `ws://${window.location.hostname}/ws`;     //for the esp webserver
@@ -16,7 +16,7 @@ function onload(event) {
 }
 
 function checkConnection() {
-        console.log("checking connection");
+        ////console.log("checking connection");
         if (websocket.readyState == 1) {
             ConnectionState.innerHTML = 'Connection Open';
         } else {
@@ -42,13 +42,21 @@ function onClose(event) {
     ConnectionState.innerHTML = 'Connection Closed';
     setTimeout(initWebSocket, 2000);
 }
+
 function onMessage(event) {
+    var nowMilliseconds = new Date().getMilliseconds();
+    var nowSeconds = new Date().getSeconds();
+    console.log(nowSeconds,nowMilliseconds);
+
+    //console.log(event.data)
     dataArray = JSON.parse(event.data).data
     dataArray2 = JSON.parse(event.data).data1
-    console.log(event.data)
+    
+    //console.time("testTime")
     graphPlotter.updateGraph()
-    //console.log(JSON.parse(event.data).data1.length)
-    //console.log(JSON.parse(event.data).data.length)
+    //console.timeEnd("testTime")
+    ////console.log(JSON.parse(event.data).data1.length)
+    ////console.log(JSON.parse(event.data).data.length)
 }
 class Graph {
     constructor(nameOfChart, widthRatio, heightRatio, XaxisName, YaxisName, numTicksX, numTicksY) {
@@ -192,11 +200,11 @@ class OscilloscopeGraph extends Graph {
         this.updateGraph();
     }
     updateGraph() {
-        console.time("testTime")
+        //console.time("testTime")
         this.removeDataPoints()
         this.drawLine(0)
         this.drawLine(1)
-        console.timeEnd("testTime")
+        //console.timeEnd("testTime")
     }
     drawLinesInGraph() {
         this.svg = d3.select("#Chart").append("svg")                                                                  // change this to the name of the chart?                         
@@ -244,7 +252,7 @@ class OscilloscopeGraph extends Graph {
             .style("text-anchor", "middle")
             .text(this.yAxisName);
     }
-     drawLine(line) {
+    async drawLine(line) {
         var multiplier = 4;
         var ArrayInDrawLine = [];
         var strokeWidth = 1,
@@ -253,7 +261,7 @@ class OscilloscopeGraph extends Graph {
             minY = this.minY,
             maxY = 0;
         var color = "rgb(0,255,0)";
-        console.log(line)
+        //console.log(line)
         if (line){
             color = "rgb(255,0,0)";
             ArrayInDrawLine = dataArray; 
@@ -264,7 +272,7 @@ class OscilloscopeGraph extends Graph {
             ArrayInDrawLine = dataArray2;
             dataArray2 = []
         }
-        console.log(ArrayInDrawLine)
+        //console.log(ArrayInDrawLine)
 
         var x1, x2, y1, y2 = 0;
         //stationary function
@@ -390,7 +398,7 @@ class FFTGraph extends Graph {
         //stationary function
         var height = this.height;
         var JsonData = this.convertToJson(dataArray);
-        console.log(JsonData);
+        //console.log(JsonData);
         this.svg.selectAll("mybar")
             .data(JsonData)
             .enter()
@@ -502,7 +510,7 @@ function SendDataOnUpdate () {
             "golfType": ArrayForWaveform[2],
         });
     }
-    console.log(JSON.parse(data));
+    ////console.log(JSON.parse(data));
     websocket.send(data);
     graphPlotter.updateGraph();
 }
