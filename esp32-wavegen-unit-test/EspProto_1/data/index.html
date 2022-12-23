@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link href="style.css" rel="stylesheet">
+    <script src="libraries/jquery.min.js"></script>
+    <script src="libraries/d3.v4.min.js"></script>
+</head>
+
+<body>
+    <div class="grid-container">
+
+        <div class="grid-child waveform">
+            WaveformGenerator
+            <label class="Frequency">
+                <p>frequency</p>
+                <!-- change the min max to the correct values -->
+                <input id="frequencySlider" type="range" min="10" max="100000" value="0" step="1">
+                <input id="FrequencyInputField" type="number" value="10" min="10" max="100000">
+                <div class=" range_output">
+                    <output name="frequencyOutput" id="frequencySliderValue">Value: 10 hz</output>
+                </div>
+            </label>
+            <label class="dutycycle">
+                <p>dutycycle</p>
+                <input id="dutycycleSlider" type="range" min="1" max="99" value="0" step="1">
+                <div class=" range_output">
+                    <output name="dutycycleOutput" id="dutycycleSliderValue">Value: 1 %</output>
+                </div>
+            </label>
+            <form name="form1" id="form1">
+                golf type: <select name="golf_style" id="golf_style" onchange="changeGolfStyle()">
+                    <option value="sine" selected="selected">sine</option>
+                    <option value="square" selected="selected">square</option>
+                    <option value="triangle" selected="selected">triangle</option>
+                </select>
+            </form>
+        </div>
+        <div class="grid-child FFT" id="FFT">
+            <button onclick="FFTScopeChange()">Oscilloscope</button>
+            <label class="centreFrequency">
+                <p>Frequency for the FFT</p>
+                <!-- change the min max to the correct values -->
+                <input id="centreFrequencySlider" type="range" min="10" max="500000" value="0" step="1">
+                <input id="CentreFrequencyInputField" type="number" value="10" min="10" max="500000">
+                <div class=" range_output">
+                    <output name="centreFrequencyOutput" id="centreFrequencySliderValue">Value: 10 hz</output>
+                </div>
+            </label>
+            <label class="Db per division">
+                <p>Volt per division (in dB)</p>
+                <!-- change the min max to the correct values -->
+                <input id="DbPerDivisionSlider" type="range" min="0" max="5" value="0" step="1">
+                <div class=" range_output">
+                    <output name="DbPerDivisionOutput" id="DbPerDivisionSliderValue">Value: 10 mV</output>
+                </div>
+            </label>
+            <form name="form1" id="form1">
+                window style: <select name="window_style" id="window_style" onchange="changeWindowStyle()">
+                    <option value="flattop" selected="selected">flattop</option>
+                    <option value="hanning" selected="selected">hanning</option>
+                    <option value="uniform" selected="selected">uniform</option>
+                </select>
+            </form>
+            <!--<label class="scan rate">
+                <p>scan rate</p>
+                 change the min max to the correct values
+                <input id="scanRateSlider" type="range" min="0" max="100" value="0" step="1">
+                <div class=" range_output">
+                    <output name="scanRateOutput" id="scanRateSliderValue">Value: 0</output>
+                </div>
+            </label>-->
+        </div>
+
+        <div class="grid-child scope" id="scope">
+            <button onclick="FFTScopeChange()">FFT</button>
+            <br>
+            <br>
+            <label class="switch">
+                <input type="checkbox" id="ACDCcoupling">
+                <span class="slider round"></span>
+            </label>
+            <label>AC/DC</label>
+            <br>
+            <br>
+            <label class="switch">
+                <input type="checkbox" id="channel">
+                <span class="slider round"></span>
+            </label>
+            <label>channel 1 or 2</label>
+            <br>
+            <br>
+            <label class="switch">
+                <input type="checkbox" id="edge">
+                <span class="slider round"></span>
+            </label>
+            <label>Falling edge/ rising edge</label>
+            <label class="Time per division">
+                <p>Time per division</p>
+                <input id="timePerDivisionSlider" type="range" min="0" max="14" value="0" step="1">
+                <div class=" range_output">
+                    <output name="TimePerDivisonOutput" id="timePerDivisionSliderValue">Value: 100 us/div</output>
+                </div>
+            </label>
+
+            <label class="Voltage per division">
+                <p>Voltage per division</p>
+                <input id="VoltagePerDivisionSlider" type="range" min="0" max="5" value="0" step="1">
+                <div class="range_output">
+                    <output name="VoltagePerDivisonOutput" id="VoltagePerDivisionSliderValue">Value: 10 mV/div</output>
+                </div>
+            </label>
+            <label class="Trigger">
+                <p>Trigger</p>
+                <input id="TriggerSlider" type="range" min="0" max="100" value="0" step="1">
+            </label>
+            <div class="range_output">
+                <output name="Trigger_output" id="TriggerSliderValue">Value: 0 %</output>
+                <br>
+                <output name="Trigger_output" id="TriggerSliderValueVoltage">Value: 100 us/Div</output>
+            </div>
+        </div>
+        <div class="grid-child state">
+            <label id="ConnectionState">State: Not Connected</label>
+            <br>
+            <br>
+            <p>Sample toggle:</p>
+            <label class="switch">
+                <input type="checkbox" id="on-off-switch">
+                <span class="slider round"></span>
+            </label>
+            <label>Off/On</label>
+        </div>
+        <div class="grid-child" id="Chart"></div>
+        <!-- <div class="grid-child fft" id="FFTChart"></div> -->
+
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
