@@ -49,10 +49,17 @@ void WaveGen::triangle(int freq) {
 
 void WaveGen::square(int freq, float duty) {
   timer_conf.freq_hz = constrain(freq, MIN_FREQ, MAX_FREQ);
-  channel_conf.duty = 256 * duty;
+  
 
   esp_err_t result;
 
+  if(freq < 1000) {
+    timer_conf.duty_resolution = LEDC_TIMER_13_BIT;
+    channel_conf.duty = 8192 * (1.0f - duty);
+  } else {
+    timer_conf.duty_resolution = LEDC_TIMER_8_BIT;
+    channel_conf.duty = 256 * (1.0f - duty);
+  }
 
   result = ledc_timer_config(&timer_conf);
   Serial.print("ledc_timer_config(..) = ");
