@@ -49,8 +49,13 @@ function onMessage(event) {
     console.log(nowSeconds,nowMilliseconds);
 
     //console.log(event.data)
-    dataArray = JSON.parse(event.data).data
-    dataArray2 = JSON.parse(event.data).data1
+    tmpArray = JSON.parse(event.data).data
+    for (i = 0; i < tmpArray.length; i += 2) {
+        dataArray.push(tmpArray[i])
+        dataArray2.push(tmpArray[i + 1])
+    }
+    // dataArray = JSON.parse(event.data).data
+    // dataArray2 = JSON.parse(event.data).data1
     
     //console.time("testTime")
     graphPlotter.updateGraph()
@@ -253,11 +258,11 @@ class OscilloscopeGraph extends Graph {
             .text(this.yAxisName);
     }
     async drawLine(line) {
-        var multiplier = 4;
+        var multiplier = 1;
         var ArrayInDrawLine = [];
         var strokeWidth = 1,
             minX = 0,                               //this needs to be auatomated later. These values must be given from the esp.
-            maxX = this.maxX,
+            maxX = 1000,
             minY = this.minY,
             maxY = 0;
         var color = "rgb(0,255,0)";
