@@ -36,7 +36,7 @@ const int potPin = 34;
 float potValue = 0;
 int ArrayForScope[] = {0, 0, 0, 0, 0, 0, 0};
 int ArrayForFFT[] = {0, 0, 0, 0, 0};
-int ArrayForWaveform[] = {0, 0, 0};
+int ArrayForWaveform[] = {0, 0, 0, 0};
 String message = "";
 
 // Initialize SPIFFS
@@ -114,12 +114,15 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     ArrayForWaveform[0] = ObjectJson["frequency"];
     ArrayForWaveform[1] = ObjectJson["dutyCycle"];
     ArrayForWaveform[2] = ObjectJson["golfType"];
+    ArrayForWaveform[3] = ObjectJson["offset"];
     Serial.print("frequency: ");
     Serial.println(ArrayForWaveform[0]);
     Serial.print("dutyCycle: ");
     Serial.println(ArrayForWaveform[1]);
     Serial.print("golftype: ");
     Serial.println(ArrayForWaveform[2]);
+    Serial.print("offset: ");
+    Serial.println(ArrayForWaveform[3]);
     switch (ArrayForWaveform[2]) {
       case 0: // sine
         wavegen->sine(ArrayForWaveform[0]);
@@ -131,7 +134,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
         wavegen->triangle(ArrayForWaveform[0]);
         break;
     }
-
+    wavegen->setOffset((float)ArrayForWaveform[3]/100);
   }
 }
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {

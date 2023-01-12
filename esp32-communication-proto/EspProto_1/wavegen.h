@@ -2,7 +2,7 @@
 #include <SPI.h>
 #include "ad9833.h"
 
-#define MIN_FREQ 1
+#define MIN_FREQ 10
 #define MAX_FREQ 500000
 
 class WaveGen {
@@ -14,4 +14,5 @@ class WaveGen {
     void sine(int freq);
     void triangle(int freq);
     void square(int freq, float duty);
+    void setOffset(float offset);
 };

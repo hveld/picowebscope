@@ -47,6 +47,13 @@ void WaveGen::triangle(int freq) {
   digitalWrite(_analog_switch_pin, LOW);
 }
 
+void WaveGen::setOffset(float offset) {
+  uint8_t offsetDac = offset / 3.3 * 255;
+  offsetDac = constrain(offsetDac, 0, 255);
+  Serial.print("writing to DAC pin "), Serial.print(_dac_pin); Serial.print(": "); Serial.println(offsetDac);
+  dacWrite(_dac_pin, offsetDac);
+}
+
 void WaveGen::square(int freq, float duty) {
   timer_conf.freq_hz = constrain(freq, MIN_FREQ, MAX_FREQ);
   

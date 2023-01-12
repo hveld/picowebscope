@@ -1,6 +1,6 @@
 ArrayForScope = [0, 0, 0, 0, 100, 10, 0,]
 ArrayForFFT = [10, 10, 2, 0]
-ArrayForWaveform = [10, 1, 0]
+ArrayForWaveform = [10, 1, 0, 0]
 var dataArray = [];
 var delayBetweenCalls = 10;
 
@@ -354,7 +354,8 @@ function SendDataOnUpdate () {
             "Trigger": ArrayForScope[6],
             "frequency": ArrayForWaveform[0],
             "dutyCycle": ArrayForWaveform[1],
-            "golfType": ArrayForWaveform[2]
+            "golfType": ArrayForWaveform[2],
+            "offset": ArrayForWaveform[3]
         });
     }
     if (currentPage == 2) {
@@ -368,6 +369,7 @@ function SendDataOnUpdate () {
             "frequency": ArrayForWaveform[0],
             "dutyCycle": ArrayForWaveform[1],
             "golfType": ArrayForWaveform[2],
+            "offset": ArrayForWaveform[3]
         });
     }
     console.log(JSON.parse(data));
@@ -589,6 +591,14 @@ $('#dutycycleSlider').on("input change", function () {
         value = element.val()
     ArrayForWaveform[indexInWFGArray] = parseInt(value);
     $('#dutycycleSliderValue').text("Value : " + value + " %");
+});
+
+$('#wavegen-offsetSlider').on("input change", function () {
+    indexInWFGArray = 3;
+    var element = $('#wavegen-offsetSlider'),
+        value = element.val();
+    ArrayForWaveform[indexInWFGArray] = parseInt(value);
+    $('#wavegen-offsetSliderValue').text("Value : " + value/100 + " V");
 });
 
 function changeGolfStyle() {
