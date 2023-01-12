@@ -89,6 +89,8 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       Serial.println(ArrayForScope[5]);
       Serial.print("fallingRising: ");
       Serial.println(ArrayForScope[6]);
+      setVoltPerDivisionMux();
+      setCoupling();
     }
     if (ObjectJson.hasOwnProperty("FFT")) {
       ArrayForScope[3] = 0;
@@ -137,6 +139,42 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     wavegen->setOffset((float)ArrayForWaveform[3]/100);
   }
 }
+
+void setVoltPerDivisionMux() {
+  uint8_t select_lines[6][6] = { // [ch1S2, ch1S1, ch1S0, ch2S2, ch2S1, ch2S0]
+      {0, 1, 0, 1, 0, 1}, // 10 mV/div   ch1: A2; ch2: A5
+      {0, 0, 1, 1, 1, 1}, // 100 mV/div  ch1: A1; ch2: A7
+      {1, 0, 0, 0, 1, 0}, // 500 mV/div  ch1: A4; ch2: A2
+      {1, 1, 0, 0, 0, 1}, // 1 V/div    ch1: A6; ch2: A1
+      {1, 1, 1, 0, 0, 0}, // 2 V/div   ch1: A7; ch2: A0
+      {1, 0, 1, 0, 1, 1} // 5 V/div   ch1: A5; ch2: A3
+  };
+  uint8_t to_output[6];
+  switch(ArrayForScope[1]) { // mV per division
+    case 10:      memcpy(to_output, select_lines[0], 6);    break;
+    case 100:     memcpy(to_output, select_lines[1], 6);    break;
+    case 500:     memcpy(to_output, select_lines[2], 6);    break;
+    case 1000:    memcpy(to_output, select_lines[3], 6);    break;
+    case 2000:    memcpy(to_output, select_lines[4], 6);    break;
+    case 5000:    memcpy(to_output, select_lines[5], 6);    break;
+    default: return;
+  }
+  // !! TX pin is normally connected to ch1S2. 
+  uint8_t pin[6] = {2, 21, 22, 32, 33, 27}; // [ch1S2, ch1S1, ch1S0, ch2S2, ch2S1, ch2S0]
+  for(int i = 0; i < 6; i++)
+    digitalWrite(pin[i], to_output[i]);
+}
+
+void setCoupling() {
+  if(ArrayForScope[4] == 1) { // DC coupling
+    digitalWrite(0, HIGH);
+    //digitalWrite(2, HIGH); // temporarily used for CH1SSEL2
+  } else { // AC coupling
+    digitalWrite(0, LOW);
+    //digitalWrite(2, LOW); // temporarily used for CH1SSEL2
+  }
+}
+
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
   switch (type) {
     case WS_EVT_CONNECT:
@@ -290,6 +328,11 @@ void setup() {
     1);        /* pin task to core 0 */
   wavegen = new WaveGen(switch_waveform_generator, dac_offset, hspi, ad9833_sclk_pin, ad9833_sdata_pin, ad9833_fsync_pin);
   Serial.println("setup klaar");
+
+  // set pins for channel 1/2 selectors and coupling
+  uint8_t pinsAsOutput[8] = {21, 2, 22, 27, 33, 32, 0};
+  for(int i = 0; i < sizeof(pinsAsOutput)/sizeof(pinsAsOutput[0]); i++)
+    pinMode(pinsAsOutput[i], OUTPUT);
 }
 void loop() {
 }
