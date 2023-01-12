@@ -29,7 +29,19 @@ AsyncWebServer server(80);
 bool fftVar = false;
 float sampleArrayChanne1[sample_size];
 AsyncWebSocket ws("/ws");
-
+typedef enum
+{
+    RX_TRIG_CHANNEL,
+    RX_TRIG_LEVEL,
+    RX_TRIG_EDGE,
+    RX_DESIMATION_I,
+}RX_SETTINGS_INDEX;
+typedef enum
+{
+    RISING_EDGE = 0,
+    FALLING_EDGE = 1,
+    NO_EDGE = 2,
+}EdgeType;
 const uint8_t ad9833_sclk_pin = 17;
 const uint8_t ad9833_sdata_pin = 16;
 const uint8_t ad9833_fsync_pin = 4;
@@ -62,7 +74,6 @@ void task_wait_spi(void* pvParameters) {
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
     slave.wait(&spi_slave_rx_buf[rx_count], spi_slave_tx_buf, sample_size);
-
     xTaskNotifyGive(task_handle_process_buffer);
   }
 }
@@ -72,12 +83,10 @@ void task_process_buffer(void* pvParameters) {
   DynamicJsonDocument docOSS(40000);
   while (1) {
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-    rx_count += slave.size();
-    Serial.println(slave.size());
-    if (rx_count >= 2000)
-    {
       //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
       if (ArrayForScope[3] == 1 || ArrayForFFT[0] == 1) {
+        Serial.println("slave size ");
+        Serial.print(slave.size());
         Serial.println("test----------------------");
         if (fftVar == true) {
           JsonArray dataFFT = docFFT.createNestedArray("data");
@@ -123,27 +132,26 @@ void task_process_buffer(void* pvParameters) {
           //Serial.println(ESP.getFreeHeap());
         }
         else {
+          
           JsonArray dataOSS = docOSS.createNestedArray("data");
           String outputOSS;
-          for (int i = 0; i < sample_size; i++ ) {
-            Serial.println("hoi");
+          
+          for (int i = 0; i < 2000; i++ ) {
             //potValue = 1000 * ((3.3 / 4095) * analogRead(potPin));
-            uint8_t samplesTest = 1000 * ((3.3 / 255) * spi_slave_rx_buf[i]);
+            uint8_t samplesTest =  spi_slave_rx_buf[i];
+           // uint8_t samplesTest = spi_slave_rx_buf[i];
             dataOSS.add(samplesTest);
           }
+          
           serializeJson(docOSS, outputOSS);
           ws.textAll(outputOSS);//OutputOSS
-          clearChannel(1);
+          clearChannel(1); 
           clearChannel(2);
           docOSS.clear();
           outputOSS = "";
         }
-      }
-      else {
-      }
       //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-      rx_count = 0;
-       vTaskDelay(100 / portTICK_PERIOD_MS);
+      vTaskDelay(300 / portTICK_PERIOD_MS);
     }
     slave.pop();
 
@@ -175,6 +183,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     data[len] = 0; // Null terminate the string
     message = (char*)data; // Convert to string
     JSONVar ObjectJson = JSON.parse(message); // Parse the JSON string
+    
     if (ObjectJson.hasOwnProperty("Ossilloscope")) {
       ArrayForFFT[0] = 0;
       fftVar = false;
@@ -243,7 +252,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     //        wavegen->triangle(ArrayForWaveform[0]);
     //        break;
     //    }
-
+    spi_slave_tx_buf[ArrayForScope[5],ArrayForScope[2],ArrayForScope[6],ArrayForScope[0]];
   }
 }
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
@@ -436,7 +445,7 @@ void setup() {
   Serial.print("AP IP address: ");
   Serial.println(IP);
   initWebSocket();
-  // Web Server Root URL
+  // Web Server Root URL 
   server.on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
     request->send(SPIFFS, "/index.html", "text/html");
   });
@@ -445,8 +454,8 @@ void setup() {
   // Start server
   server.begin();
 
-  spi_slave_tx_buf = slave.allocDMABuffer(sample_size);
-  spi_slave_rx_buf = slave.allocDMABuffer(sample_size);
+  spi_slave_tx_buf = slave.allocDMABuffer(sample_size*2);
+  spi_slave_rx_buf = slave.allocDMABuffer(sample_size*2);
 
 
 //    set_buffer();

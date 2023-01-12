@@ -44,19 +44,26 @@ function onClose(event) {
 }
 
 function onMessage(event) {
-    var nowMilliseconds = new Date().getMilliseconds();
-    var nowSeconds = new Date().getSeconds();
-    console.log(nowSeconds,nowMilliseconds);
-
     //console.log(event.data)
     tmpArray = JSON.parse(event.data).data
-    for (i = 0; i < tmpArray.length; i += 2) {
-        dataArray.push(tmpArray[i])
-        dataArray2.push(tmpArray[i + 1])
+    if (dataArray.length >= 1000) {
+        dataArray = []
     }
+    if (dataArray2.length >= 1000) {
+        dataArray2 = []
+    }
+
+    for (i = 0; i < tmpArray.length; i += 2) {
+        dataArray.push(1000 * ((3 / 255) * tmpArray[i]))
+        dataArray2.push(1000 * ((3 / 255) * tmpArray[i+1]))
+        if (dataArray.length >= 1000) {
+            break;
+        }
+    }
+    console.log(dataArray.length);
     // dataArray = JSON.parse(event.data).data
     // dataArray2 = JSON.parse(event.data).data1
-    
+
     //console.time("testTime")
     graphPlotter.updateGraph()
     //console.timeEnd("testTime")
@@ -105,7 +112,7 @@ class Graph {
 
         var y = d3.scaleLinear()            //calculate numbers for the y axis
             .range([this.height, 0])
-            .domain([0, this.numTicksY * axisNumberOnY])
+            .domain([-(this.numTicksY/2) * axisNumberOnY, (this.numTicksY/2) * axisNumberOnY])
         var x = d3.scaleLinear()             //calculate numbers for the x axis
             .range([0, this.width])
             .domain([0, this.numTicksX * axisNumberOnX])
@@ -263,19 +270,17 @@ class OscilloscopeGraph extends Graph {
         var strokeWidth = 1,
             minX = 0,                               //this needs to be auatomated later. These values must be given from the esp.
             maxX = 1000,
-            minY = this.minY,
-            maxY = 0;
+            minY = this.minY/2,
+            maxY = -this.minY/2;
         var color = "rgb(0,255,0)";
         //console.log(line)
         if (line){
             color = "rgb(255,0,0)";
             ArrayInDrawLine = dataArray; 
-            dataArray = []
 
         }else{
             color = "rgb(0,255,0)";
             ArrayInDrawLine = dataArray2;
-            dataArray2 = []
         }
         //console.log(ArrayInDrawLine)
 
