@@ -10,14 +10,15 @@
 #include <Arduino_JSON.h>
 #include "wavegen.h"
 #include <ESP32DMASPISlave.h>
-
+#include "wifi_config.h"
 #include "FFT.h" // include the library
 #include "FFT_signal.h"
 #include "math.h"
-const char* ssid = "EspAC";
+
 char print_buf[300];
 const int sample_size = 2000;
-const char* password = "12345678";
+
+
 TaskHandle_t Task1;
 TaskHandle_t Task2;
 ESP32DMASPI::Slave slave;
@@ -47,6 +48,7 @@ const uint8_t ad9833_sdata_pin = 16;
 const uint8_t ad9833_fsync_pin = 4;
 const uint8_t switch_waveform_generator = 25;
 const uint8_t dac_offset = 26;
+static SPIClass hspi(HSPI);
 WaveGen *wavegen;
 const int potPin2 = 35;
 const int potPin = 34;
@@ -54,7 +56,7 @@ float potValue = 0;
 float potValue2 = 0;
 int ArrayForScope[] = {0, 0, 0, 0, 0, 0, 0};
 int ArrayForFFT[] = {0, 0, 0, 0, 0, 0};
-int ArrayForWaveform[] = {0, 0, 0};
+int ArrayForWaveform[] = {0, 0, 0, 0};
 String message = "";
 void clearChannel(int channel_number);
 
@@ -209,6 +211,8 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       Serial.println(ArrayForScope[5]);
       Serial.print("FallingRising: ");
       Serial.println(ArrayForScope[6]);
+      setVoltPerDivisionMux();
+      setCoupling();
     }
     if (ObjectJson.hasOwnProperty("FFT")) {
       ArrayForScope[3] = 0;
@@ -234,27 +238,65 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     ArrayForWaveform[0] = ObjectJson["frequency"];
     ArrayForWaveform[1] = ObjectJson["dutyCycle"];
     ArrayForWaveform[2] = ObjectJson["golfType"];
+    ArrayForWaveform[3] = ObjectJson["offset"];
     Serial.print("Frequency: ");
     Serial.println(ArrayForWaveform[0]);
     Serial.print("DutyCycle: ");
     Serial.println(ArrayForWaveform[1]);
     Serial.print("GolfType: ");
     Serial.println(ArrayForWaveform[2]);
-    Serial.println("----------------");
-    //    switch (ArrayForWaveform[2]) {
-    //      case 0: // sine
-    //        wavegen->sine(ArrayForWaveform[0]);
-    //        break;
-    //      case 1: // square
-    //        wavegen->square(ArrayForWaveform[0], (float)ArrayForWaveform[1] / 100);
-    //        break;
-    //      case 2: // triangle
-    //        wavegen->triangle(ArrayForWaveform[0]);
-    //        break;
-    //    }
-    spi_slave_tx_buf[ArrayForScope[5],ArrayForScope[2],ArrayForScope[6],ArrayForScope[0]];
+    Serial.print("offset: ");
+    Serial.println(ArrayForWaveform[3]);
+    switch (ArrayForWaveform[2]) {
+      case 0: // sine
+        wavegen->sine(ArrayForWaveform[0]);
+        break;
+      case 1: // square
+        wavegen->square(ArrayForWaveform[0], (float)ArrayForWaveform[1] / 100);
+        break;
+      case 2: // triangle
+        wavegen->triangle(ArrayForWaveform[0]);
+        break;
+    }
+    wavegen->setOffset((float)ArrayForWaveform[3]/100);
   }
 }
+
+void setVoltPerDivisionMux() {
+  uint8_t select_lines[6][6] = { // [ch1S2, ch1S1, ch1S0, ch2S2, ch2S1, ch2S0]
+      {0, 1, 0, 1, 0, 1}, // 10 mV/div   ch1: A2; ch2: A5
+      {0, 0, 1, 1, 1, 1}, // 100 mV/div  ch1: A1; ch2: A7
+      {1, 0, 0, 0, 1, 0}, // 500 mV/div  ch1: A4; ch2: A2
+      {1, 1, 0, 0, 0, 1}, // 1 V/div    ch1: A6; ch2: A1
+      {1, 1, 1, 0, 0, 0}, // 2 V/div   ch1: A7; ch2: A0
+      {1, 0, 1, 0, 1, 1} // 5 V/div   ch1: A5; ch2: A3
+  };
+  uint8_t to_output[6];
+  switch(ArrayForScope[1]) { // mV per division
+    case 10:      memcpy(to_output, select_lines[0], 6);    break;
+    case 100:     memcpy(to_output, select_lines[1], 6);    break;
+    case 500:     memcpy(to_output, select_lines[2], 6);    break;
+    case 1000:    memcpy(to_output, select_lines[3], 6);    break;
+    case 2000:    memcpy(to_output, select_lines[4], 6);    break;
+    case 5000:    memcpy(to_output, select_lines[5], 6);    break;
+    default: return;
+  }
+  // !! TX pin is normally connected to ch1S2. 
+  uint8_t pin[6] = {2, 21, 22, 32, 33, 27}; // [ch1S2, ch1S1, ch1S0, ch2S2, ch2S1, ch2S0]
+  for(int i = 0; i < 6; i++)
+    digitalWrite(pin[i], to_output[i]);
+}
+
+void setCoupling() {
+  if(ArrayForScope[4] == 1) { // DC coupling
+    digitalWrite(0, HIGH);
+    //digitalWrite(2, HIGH); // temporarily used for CH1SSEL2
+  } else { // AC coupling
+    digitalWrite(0, LOW);
+    //digitalWrite(2, LOW); // temporarily used for CH1SSEL2
+  }
+}
+
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
   switch (type) {
     case WS_EVT_CONNECT:
@@ -483,22 +525,13 @@ void setup() {
         &task_handle_process_buffer,
         1
         );
-//  xTaskCreatePinnedToCore(
-//    taskRealSamples, /* Task function. */
-//    "Task1",   /* name of task. */
-//    10000,     /* Stack size of task */
-//    NULL,      /* parameter of the task */
-//    1,         /* priority of the task */
-//    &Task1,    /* 1ask handle to keep track of created task */
-//    1);        /* pin task to core 0 */
-//  xTaskCreatePinnedToCore(
-//    websocket_sender, /* Task function. */
-//    "Task2",   /* name of task. */
-//    10000,     /* Stack size of task */
-//    NULL,      /* parameter of the task */
-//    1,         /* priority of the task */
-//    &Task2,    /* Task handle to keep track of created task */
-//    1);        /* pin task to core 0 */
+  wavegen = new WaveGen(switch_waveform_generator, dac_offset, hspi, ad9833_sclk_pin, ad9833_sdata_pin, ad9833_fsync_pin);
+  Serial.println("setup klaar");
+
+  // set pins for channel 1/2 selectors and coupling
+  uint8_t pinsAsOutput[8] = {21, 2, 22, 27, 33, 32, 0};
+  for(int i = 0; i < sizeof(pinsAsOutput)/sizeof(pinsAsOutput[0]); i++)
+    pinMode(pinsAsOutput[i], OUTPUT);
 }
 void loop() {
 }

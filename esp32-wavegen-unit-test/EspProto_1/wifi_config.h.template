@@ -1,0 +1,4 @@
+// 1. Copy this file and remove ".template" in the filename
+// 2. Change the SSID to something you like
+const char* ssid = "EspAC-yourname";
+const char* password = "12345678";

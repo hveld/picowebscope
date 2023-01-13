@@ -28,13 +28,6 @@
                     <output name="dutycycleOutput" id="dutycycleSliderValue">Value: 1 %</output>
                 </div>
             </label>
-            <label class="wavegen-offset">
-                <p>Offset</p>
-                <input id="wavegen-offsetSlider" type="range" min="0" max="330" value="0" step="1">
-                <div class=" range_output">
-                    <output name="dutycycleOutput" id="wavegen-offsetSliderValue">Value: 0.00 V</output>
-                </div>
-            </label>
             <form name="form1" id="form1">
                 golf type: <select name="golf_style" id="golf_style" onchange="changeGolfStyle()">
                     <option value="sine" selected="selected">sine</option>
@@ -45,13 +38,6 @@
         </div>
         <div class="grid-child FFT" id="FFT">
             <button onclick="FFTScopeChange()">Oscilloscope</button>
-            <br>
-            <label class="switch">
-                <input type="checkbox" id="channelForFFT">
-                <span class="slider round"></span>
-            </label>
-            <label>channel 1 or 2</label>
-            <br>
             <label class="centreFrequency">
                 <p>Frequency for the FFT</p>
                 <!-- change the min max to the correct values -->
