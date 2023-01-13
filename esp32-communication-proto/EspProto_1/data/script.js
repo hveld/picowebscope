@@ -54,10 +54,10 @@ function onMessage(event) {
     }
 
     for (i = 0; i < tmpArray.length; i += 2) {
-        dataArray.push(1000 * ((3 / 255) * tmpArray[i]))
-        dataArray2.push(1000 * ((3 / 255) * tmpArray[i+1]))
-        // dataArray.push(tmpArray[i])                                                  //uncomment later when integrated
-        // dataArray2.push(tmpArray[i+1])
+        // dataArray.push(1000 * ((3 / 255) * tmpArray[i]))
+        // dataArray2.push(1000 * ((3 / 255) * tmpArray[i+1]))
+        dataArray.push(tmpArray[i]-12.75)                                                  //uncomment later when integrated
+        dataArray2.push(tmpArray[i+1]-12.75)
         if (dataArray.length >= 1000) {
             break;
         }
@@ -272,8 +272,10 @@ class OscilloscopeGraph extends Graph {
         var strokeWidth = 1,
             minX = 0,                               //this needs to be auatomated later. These values must be given from the esp.
             maxX = 1000,
-            minY = this.minY/2,                     //this should be 255
-            maxY = -this.minY/2;                    //this should be 0
+            // minY = this.minY/2,                     //this should be 255
+            // maxY = -this.minY/2;                    //this should be 0
+            minY = 255,                     //this should be 255
+            maxY = 0;                    //this should be 0
         var color = "rgb(0,255,0)";
         //console.log(line)
         if (line){
