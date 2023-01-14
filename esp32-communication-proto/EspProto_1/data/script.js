@@ -4,7 +4,7 @@ ArrayForWaveform = [10, 1, 0, 0]
 var dataArray = [];
 var dataArray2 = [];
 var delayBetweenCalls =100;
-
+var indexForTimePerDivision =  0;
 //const gateway = 'ws://localhost:8000';        //for the python webserver
 var gateway = `ws://${window.location.hostname}/ws`;     //for the esp webserver
 
@@ -54,8 +54,10 @@ function onMessage(event) {
     }
 
     for (i = 0; i < tmpArray.length; i += 2) {
-        dataArray.push(1000 * ((3 / 255) * tmpArray[i]))
-        dataArray2.push(1000 * ((3 / 255) * tmpArray[i+1]))
+        // dataArray.push(1000 * ((3 / 255) * tmpArray[i]))
+        // dataArray2.push(1000 * ((3 / 255) * tmpArray[i+1]))
+        dataArray.push(tmpArray[i]-12.75)                                                  //uncomment later when integrated
+        dataArray2.push(tmpArray[i+1]-12.75)
         if (dataArray.length >= 1000) {
             break;
         }
@@ -270,8 +272,10 @@ class OscilloscopeGraph extends Graph {
         var strokeWidth = 1,
             minX = 0,                               //this needs to be auatomated later. These values must be given from the esp.
             maxX = 1000,
-            minY = this.minY/2,
-            maxY = -this.minY/2;
+            // minY = this.minY/2,                     //this should be 255
+            // maxY = -this.minY/2;                    //this should be 0
+            minY = 255,                     //this should be 255
+            maxY = 0;                    //this should be 0
         var color = "rgb(0,255,0)";
         //console.log(line)
         if (line){
@@ -499,7 +503,7 @@ function SendDataOnUpdate () {
             "ACDC": ArrayForScope[1],
             "Channel": ArrayForScope[2],
             "edge": ArrayForScope[3],
-            "TimePerDiv": ArrayForScope[4],
+            "TimePerDiv": indexForTimePerDivision,
             "VoltagePerDiv": ArrayForScope[5],
             "Trigger": ArrayForScope[6],
             "frequency": ArrayForWaveform[0],
@@ -522,7 +526,7 @@ function SendDataOnUpdate () {
             "offset": ArrayForWaveform[3]
         });
     }
-    ////console.log(JSON.parse(data));
+    console.log(JSON.parse(data));
     websocket.send(data);
     graphPlotter.updateGraph();
 }
@@ -626,6 +630,10 @@ $('#edge').on("input", function () {
     ArrayForScope[indexInScopeArray] = ValueSwitchEdge ? 1 : 0;
 });
 $('#timePerDivisionSlider').on("input change", function () {
+    var element = $('#timePerDivisionSlider'),
+        value = element.val()
+    indexForTimePerDivision = parseInt(value);
+    console.log(indexForTimePerDivision);
     indexInScopeArray = 4;
     ValueTimePerDivsion = RangeSliderHandler("timePerDivisionSlider");
     ArrayForScope[indexInScopeArray] = ValueTimePerDivsion;

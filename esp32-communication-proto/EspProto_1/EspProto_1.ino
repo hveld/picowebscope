@@ -30,19 +30,7 @@ AsyncWebServer server(80);
 bool fftVar = false;
 float sampleArrayChanne1[sample_size];
 AsyncWebSocket ws("/ws");
-typedef enum
-{
-    RX_TRIG_CHANNEL,
-    RX_TRIG_LEVEL,
-    RX_TRIG_EDGE,
-    RX_DESIMATION_I,
-}RX_SETTINGS_INDEX;
-typedef enum
-{
-    RISING_EDGE = 0,
-    FALLING_EDGE = 1,
-    NO_EDGE = 2,
-}EdgeType;
+
 const uint8_t ad9833_sclk_pin = 17;
 const uint8_t ad9833_sdata_pin = 16;
 const uint8_t ad9833_fsync_pin = 4;
@@ -70,10 +58,21 @@ static TaskHandle_t task_handle_wait_spi = 0;
 static TaskHandle_t task_handle_process_buffer = 0;
 
 static volatile uint32_t rx_count = 0;
+typedef enum
+{
+RX_TRIG_CHANNEL,
+RX_TRIG_LEVEL,
+RX_TRIG_EDGE,
+RX_DESIMATION_I,
+}RX_SETTINGS_INDEX;
 
 void task_wait_spi(void* pvParameters) {
   while (1) {
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    spi_slave_tx_buf[RX_TRIG_CHANNEL] = ArrayForScope[5]+1;
+    spi_slave_tx_buf[RX_TRIG_LEVEL] = ArrayForScope[2];
+    spi_slave_tx_buf[RX_TRIG_EDGE] = ArrayForScope[6];       
+    spi_slave_tx_buf[RX_DESIMATION_I] = ArrayForScope[0];
 
     slave.wait(&spi_slave_rx_buf[rx_count], spi_slave_tx_buf, sample_size);
     xTaskNotifyGive(task_handle_process_buffer);
@@ -85,73 +84,73 @@ void task_process_buffer(void* pvParameters) {
   DynamicJsonDocument docOSS(40000);
   while (1) {
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-      if (ArrayForScope[3] == 1 || ArrayForFFT[0] == 1) {
-        Serial.println("slave size ");
-        Serial.print(slave.size());
-        Serial.println("test----------------------");
-        if (fftVar == true) {
-          JsonArray dataFFT = docFFT.createNestedArray("data");
-          String outputFFT;
-          // 0 == flattop, 1 == hanning, 2 == uniform
-          if (ArrayForFFT[1] == 0) {
-            styleFftData(0);
-            Serial.println("flattop");
-          }
-          else if (ArrayForFFT[1] == 1) {
-            styleFftData(1);
-            Serial.println("hanning");
-          }
-          else if (ArrayForFFT[1] == 2) {
-            styleFftData(2);
-            Serial.println("uniform");
-          }
-          fft_config_t *real_fft_plan = fft_init(SAMPLE_SIZE, FFT_REAL, FFT_FORWARD, fft_input, fft_output);
-          for (int k = 0 ; k < SAMPLE_SIZE ; k++)
-            real_fft_plan->input[k] = (float)fft_signal[k];
-          fft_execute(real_fft_plan);
-          int i = 0;
-          for (int k = 1 ; k < real_fft_plan->size / 2 ; k++)
-          {
-            float mag = sqrt(pow(real_fft_plan->output[2 * k], 2) + pow(real_fft_plan->output[2 * k + 1], 2)) / 1;
-            int mag1 = mag / 10;
-            //float freq = k*9.77/TOTAL_TIME;
-            //sprintf(print_buf,"%f Hz : %d", mag, freq);
-            //Serial.println(print_buf);
-            dataFFT.add(mag1);
-          }
-          serializeJson(docFFT, outputFFT);
-          //        Serial.println("Test");
-          //        Serial.println(ESP.getFreeHeap());
-          //Serial.println(ws.canSend());
+    //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+    if (ArrayForScope[3] == 1 || ArrayForFFT[0] == 1) {
+      Serial.println("slave size ");
+      Serial.print(slave.size());
+      Serial.println("test----------------------");
+      if (fftVar == true) {
+        JsonArray dataFFT = docFFT.createNestedArray("data");
+        String outputFFT;
+        // 0 == flattop, 1 == hanning, 2 == uniform
+        if (ArrayForFFT[1] == 0) {
+          styleFftData(0);
+          Serial.println("flattop");
+        }
+        else if (ArrayForFFT[1] == 1) {
+          styleFftData(1);
+          Serial.println("hanning");
+        }
+        else if (ArrayForFFT[1] == 2) {
+          styleFftData(2);
+          Serial.println("uniform");
+        }
+        fft_config_t *real_fft_plan = fft_init(SAMPLE_SIZE, FFT_REAL, FFT_FORWARD, fft_input, fft_output);
+        for (int k = 0 ; k < SAMPLE_SIZE ; k++)
+          real_fft_plan->input[k] = (float)fft_signal[k];
+        fft_execute(real_fft_plan);
+        int i = 0;
+        for (int k = 1 ; k < real_fft_plan->size / 2 ; k++)
+        {
+          float mag = sqrt(pow(real_fft_plan->output[2 * k], 2) + pow(real_fft_plan->output[2 * k + 1], 2)) / 1;
+          int mag1 = mag / 10;
+          //float freq = k*9.77/TOTAL_TIME;
+          //sprintf(print_buf,"%f Hz : %d", mag, freq);
+          //Serial.println(print_buf);
+          dataFFT.add(mag1);
+        }
+        serializeJson(docFFT, outputFFT);
+        //        Serial.println("Test");
+        //        Serial.println(ESP.getFreeHeap());
+        //Serial.println(ws.canSend());
 
-          ws.textAll(outputFFT);
-          clearChannel(1);
-          docFFT.clear();
-          outputFFT = "";
-          fft_destroy(real_fft_plan);
-          //Serial.println("Test2");
-          //Serial.println(ESP.getFreeHeap());
+        ws.textAll(outputFFT);
+        clearChannel(1);
+        docFFT.clear();
+        outputFFT = "";
+        fft_destroy(real_fft_plan);
+        //Serial.println("Test2");
+        //Serial.println(ESP.getFreeHeap());
+      }
+      else {
+
+        JsonArray dataOSS = docOSS.createNestedArray("data");
+        String outputOSS;
+
+        for (int i = 0; i < 2000; i++ ) {
+          //potValue = 1000 * ((3.3 / 4095) * analogRead(potPin));
+          uint8_t samplesTest =  spi_slave_rx_buf[i];
+          // uint8_t samplesTest = spi_slave_rx_buf[i];
+          dataOSS.add(samplesTest);
         }
-        else {
-          
-          JsonArray dataOSS = docOSS.createNestedArray("data");
-          String outputOSS;
-          
-          for (int i = 0; i < 2000; i++ ) {
-            //potValue = 1000 * ((3.3 / 4095) * analogRead(potPin));
-            uint8_t samplesTest =  spi_slave_rx_buf[i];
-           // uint8_t samplesTest = spi_slave_rx_buf[i];
-            dataOSS.add(samplesTest);
-          }
-          
-          serializeJson(docOSS, outputOSS);
-          ws.textAll(outputOSS);//OutputOSS
-          clearChannel(1); 
-          clearChannel(2);
-          docOSS.clear();
-          outputOSS = "";
-        }
+
+        serializeJson(docOSS, outputOSS);
+        ws.textAll(outputOSS);//OutputOSS
+        clearChannel(1);
+        clearChannel(2);
+        docOSS.clear();
+        outputOSS = "";
+      }
       //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
       vTaskDelay(300 / portTICK_PERIOD_MS);
     }
@@ -185,7 +184,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     data[len] = 0; // Null terminate the string
     message = (char*)data; // Convert to string
     JSONVar ObjectJson = JSON.parse(message); // Parse the JSON string
-    
+
     if (ObjectJson.hasOwnProperty("Ossilloscope")) {
       ArrayForFFT[0] = 0;
       fftVar = false;
@@ -258,21 +257,21 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
         wavegen->triangle(ArrayForWaveform[0]);
         break;
     }
-    wavegen->setOffset((float)ArrayForWaveform[3]/100);
+    wavegen->setOffset((float)ArrayForWaveform[3] / 100);
   }
 }
 
 void setVoltPerDivisionMux() {
   uint8_t select_lines[6][6] = { // [ch1S2, ch1S1, ch1S0, ch2S2, ch2S1, ch2S0]
-      {0, 1, 0, 1, 0, 1}, // 10 mV/div   ch1: A2; ch2: A5
-      {0, 0, 1, 1, 1, 1}, // 100 mV/div  ch1: A1; ch2: A7
-      {1, 0, 0, 0, 1, 0}, // 500 mV/div  ch1: A4; ch2: A2
-      {1, 1, 0, 0, 0, 1}, // 1 V/div    ch1: A6; ch2: A1
-      {1, 1, 1, 0, 0, 0}, // 2 V/div   ch1: A7; ch2: A0
-      {1, 0, 1, 0, 1, 1} // 5 V/div   ch1: A5; ch2: A3
+    {0, 1, 0, 1, 0, 1}, // 10 mV/div   ch1: A2; ch2: A5
+    {0, 0, 1, 1, 1, 1}, // 100 mV/div  ch1: A1; ch2: A7
+    {1, 0, 0, 0, 1, 0}, // 500 mV/div  ch1: A4; ch2: A2
+    {1, 1, 0, 0, 0, 1}, // 1 V/div    ch1: A6; ch2: A1
+    {1, 1, 1, 0, 0, 0}, // 2 V/div   ch1: A7; ch2: A0
+    {1, 0, 1, 0, 1, 1} // 5 V/div   ch1: A5; ch2: A3
   };
   uint8_t to_output[6];
-  switch(ArrayForScope[1]) { // mV per division
+  switch (ArrayForScope[1]) { // mV per division
     case 10:      memcpy(to_output, select_lines[0], 6);    break;
     case 100:     memcpy(to_output, select_lines[1], 6);    break;
     case 500:     memcpy(to_output, select_lines[2], 6);    break;
@@ -281,14 +280,14 @@ void setVoltPerDivisionMux() {
     case 5000:    memcpy(to_output, select_lines[5], 6);    break;
     default: return;
   }
-  // !! TX pin is normally connected to ch1S2. 
+  // !! TX pin is normally connected to ch1S2.
   uint8_t pin[6] = {2, 21, 22, 32, 33, 27}; // [ch1S2, ch1S1, ch1S0, ch2S2, ch2S1, ch2S0]
-  for(int i = 0; i < 6; i++)
+  for (int i = 0; i < 6; i++)
     digitalWrite(pin[i], to_output[i]);
 }
 
 void setCoupling() {
-  if(ArrayForScope[4] == 1) { // DC coupling
+  if (ArrayForScope[4] == 1) { // DC coupling
     digitalWrite(0, HIGH);
     //digitalWrite(2, HIGH); // temporarily used for CH1SSEL2
   } else { // AC coupling
@@ -487,7 +486,7 @@ void setup() {
   Serial.print("AP IP address: ");
   Serial.println(IP);
   initWebSocket();
-  // Web Server Root URL 
+  // Web Server Root URL
   server.on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
     request->send(SPIFFS, "/index.html", "text/html");
   });
@@ -496,41 +495,41 @@ void setup() {
   // Start server
   server.begin();
 
-  spi_slave_tx_buf = slave.allocDMABuffer(sample_size*2);
-  spi_slave_rx_buf = slave.allocDMABuffer(sample_size*2);
+  spi_slave_tx_buf = slave.allocDMABuffer(sample_size * 2);
+  spi_slave_rx_buf = slave.allocDMABuffer(sample_size * 2);
 
 
-//    set_buffer();
+  //    set_buffer();
 
-    delay(5000);
+  delay(5000);
 
-    // slave device configuration
-    slave.setDataMode(SPI_MODE1);
-    slave.setMaxTransferSize(sample_size);
+  // slave device configuration
+  slave.setDataMode(SPI_MODE1);
+  slave.setMaxTransferSize(sample_size);
 
-    // begin() after setting
-    slave.begin(VSPI); 
+  // begin() after setting
+  slave.begin(VSPI);
 
 
   xMutex = xSemaphoreCreateMutex();
-      xTaskCreatePinnedToCore(task_wait_spi, "task_wait_spi", 2048, NULL, 2, &task_handle_wait_spi, 1);
-    xTaskNotifyGive(task_handle_wait_spi);
+  xTaskCreatePinnedToCore(task_wait_spi, "task_wait_spi", 2048, NULL, 2, &task_handle_wait_spi, 1);
+  xTaskNotifyGive(task_handle_wait_spi);
 
-    xTaskCreatePinnedToCore(
-        task_process_buffer,
-        "task_process_buffer",
-        2048,
-        NULL,
-        2,
-        &task_handle_process_buffer,
-        1
-        );
+  xTaskCreatePinnedToCore(
+    task_process_buffer,
+    "task_process_buffer",
+    2048,
+    NULL,
+    2,
+    &task_handle_process_buffer,
+    1
+  );
   wavegen = new WaveGen(switch_waveform_generator, dac_offset, hspi, ad9833_sclk_pin, ad9833_sdata_pin, ad9833_fsync_pin);
   Serial.println("setup klaar");
 
   // set pins for channel 1/2 selectors and coupling
   uint8_t pinsAsOutput[8] = {21, 2, 22, 27, 33, 32, 0};
-  for(int i = 0; i < sizeof(pinsAsOutput)/sizeof(pinsAsOutput[0]); i++)
+  for (int i = 0; i < sizeof(pinsAsOutput) / sizeof(pinsAsOutput[0]); i++)
     pinMode(pinsAsOutput[i], OUTPUT);
 }
 void loop() {
