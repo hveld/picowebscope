@@ -5,7 +5,9 @@ var dataArray = [];
 var dataArray2 = [];
 var delayBetweenCalls = 100;
 
-var gateway = `ws://${window.location.hostname}/ws`;                        //websocket adress for the esp webserver
+const gateway = 'ws://localhost:8000';        //for the python webserver
+
+// var gateway = `ws://${window.location.hostname}/ws`;                        //websocket adress for the esp webserver
 
 var websocket;
 window.addEventListener('load', onload);                                    //call the onload function when the page loads
@@ -562,7 +564,6 @@ function FFTScopeChange() {                                                     
 }
 
 //functions for the scope sliders and buttons
-
 //this function is called when the voltage per division or time per division slider is moved. it will check which value corresponds to the slider index.
 // this value will be shown on the interface and stored in an array. 
 function RangeSliderHandler(SliderId) {
