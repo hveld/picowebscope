@@ -1,9 +1,7 @@
 #include "processing.h"
 #include "main.h"
-//#include "usb_device.h"
 #include <stdio.h>
 #include "settings.h"
-//#include "usbd_cdc_if.h"
 #include "processing.h"
 
 #define SPI_TX_BUF_SIZE 			(OUTPUT_AMOUNT * 2)
@@ -20,7 +18,7 @@ extern volatile uint8_t ADC_DMA_Buf[DMA_BUFFER_SIZE];
 extern volatile uint8_t processReadyFlag;
 
 static volatile uint8_t spi_tx_buf[SPI_TX_BUF_SIZE];
-static volatile uint8_t spi_rx_buf[SPI_TX_BUF_SIZE]; // The same amount of bytes will be received even though we don't use them all
+static volatile uint8_t spi_rx_buf[SPI_TX_BUF_SIZE];
 
 static volatile uint32_t process_i = 0;
 static volatile uint32_t spi_tx_i = 0;
@@ -29,7 +27,6 @@ static uint32_t processBuf_endIndex;
 static uint32_t triggerIndex;
 static volatile uint8_t *processBuf;
 static volatile uint8_t triggerActivated = 0;
-int FFT = 1;
 
 
 /* ---------- Settings ---------- */
@@ -59,10 +56,10 @@ const uint32_t DESIMATION_FACTORS[15] =
 
 GlobalSettings currentSettings =
 {
-		.triggerChannel = 1,//DEFUALT_TRIG_CH,
-		.triggerLevel = 50,//DEFAULT_TRIG_LVL,
-		.triggerEdge = RISING_EDGE,//DEFAULT_TRIG_EDGE,
-		.decimation_i = 0,//DEFUALT_DECIMATION_I,
+		.triggerChannel = DEFUALT_TRIG_CH,
+		.triggerLevel = DEFAULT_TRIG_LVL,
+		.triggerEdge = DEFAULT_TRIG_EDGE,
+		.decimation_i = DEFUALT_DECIMATION_I,
 };
 
 
@@ -85,7 +82,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	{
 		processReadyFlag = 1;
 	}
-	//HAL_GPIO_WritePin(ADC_measure_GPIO_Port, ADC_measure_Pin, RESET);
 }
 
 void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc)
@@ -96,7 +92,6 @@ void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc)
 	{
 		processReadyFlag = 1;
 	}
-	//HAL_GPIO_WritePin(ADC_measure_GPIO_Port, ADC_measure_Pin, SET);
 }
 
 
@@ -203,19 +198,15 @@ void process_DMA_buf()
 {
 	// Processs the new samples till the end of the processBuf has been reached
 	decimate_sample();
+
+	// Alternative way of reducing samples
 	//decimate_hi_res();
 
+	// Everything in this if statement has been added for testing
 	if (process_i >= 2000)
 	{
-//		for (int i = 0, j = 0; j < 2000; j+= 2, i++)
-//		{
-//			spi_tx_buf[j] = 128;//i % 256;
-//			spi_tx_buf[j + 1] = 128;// i % 256;
-//		}
 		HAL_GPIO_WritePin(SPI1_SS_GPIO_Port, SPI1_SS_Pin, RESET);
 		HAL_SPI_TransmitReceive(&hspi1, spi_tx_buf, spi_rx_buf, SPI_TX_BUF_SIZE, 1000);
-		//HAL_SPI_Receive(&hspi1, spi_rx_buf, SPI_RX_BUF_SIZE, 1000);
-		//HAL_SPI_Transmit(&hspi1, spi_tx_buf, SPI_TX_BUF_SIZE, 1000);
 		HAL_GPIO_WritePin(SPI1_SS_GPIO_Port, SPI1_SS_Pin, SET);
 
 		if (spi_rx_buf[RX_TRIG_CHANNEL] != 0) // A valid channel will always be greater than 0
@@ -225,7 +216,7 @@ void process_DMA_buf()
 			if (spi_rx_buf[RX_TRIG_CHANNEL] < 3)
 				currentSettings.triggerChannel = spi_rx_buf[RX_TRIG_CHANNEL];
 
-			// Small oversignt. If a low trigger level is set no more triggering and thus no opportunity to ever change settings.
+			// Small oversight. If a low trigger level is set no more triggering and thus no opportunity to ever change settings.
 			if (spi_rx_buf[RX_TRIG_LEVEL] >= 25 && spi_rx_buf[RX_TRIG_LEVEL] <= 75)
 				currentSettings.triggerLevel = spi_rx_buf[RX_TRIG_LEVEL];
 
@@ -239,7 +230,9 @@ void process_DMA_buf()
 		// Processing is now done so apply the (new) settings
 		update_settings();
 
+		// Slow down the sending of fast samples (for testing)
 		HAL_Delay(500);
+
 		process_i = 0;
 		triggerActivated = 0;
 		__HAL_ADC_CLEAR_FLAG(&hadc1, ADC_FLAG_AWD);
@@ -280,10 +273,6 @@ void HAL_ADC_LevelOutOfWindowCallback(ADC_HandleTypeDef* hadc)
 		else if (ADC_DMA_Buf[DMA_index] <= hadc->Instance->LTR)
 		{
 			currentEdge = FALLING_EDGE;
-		}
-		else
-		{
-			// No EDGE, so something went wrong
 		}
 	}
 	else
@@ -349,10 +338,6 @@ void HAL_ADC_LevelOutOfWindowCallback(ADC_HandleTypeDef* hadc)
 				}
 			}
 		}
-		else
-		{
-			// No EDGE, so something went wrong
-		}
 	}
 }
 
@@ -379,26 +364,17 @@ void set_trigger(ADC_HandleTypeDef* hadc, EdgeType edge, uint8_t percentage)
 		hadc->Instance->LTR = (int) ((percentage/100.0) * ADC_LIMIT);
 		hadc->Instance->HTR = ((hadc->Instance->LTR + 30)  <= ADC_LIMIT) ? (hadc->Instance->LTR + 30) : ADC_LIMIT;
 	}
-	else
-	{
-		// edge == NO_EDGE might be implemented in the future
-	}
 }
 
 
 /* ---------- TIMER Interrupt ---------- */
 
+// Currently not in use because the timer is disabled
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	// Check if the correct timer caused the interrupt
 	if (htim == &htim9)
 	{
-		for (int i = 0, j = 0; j < 2000; j+= 2, i++)
-		{
-			spi_tx_buf[j] = 128;//i % 256;
-			spi_tx_buf[j + 1] = 128;// i % 256;
-		}
-
 		// "a Host should write lengths that are multiples of 4 bytes. The data with inappropriate lengths will be discarded."
 		//https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/spi_slave.html#restrictions-and-known-issues
 		int spi_tx_amount = (process_i - spi_tx_i);
@@ -418,7 +394,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		// If at least 4 bytes are available (with multiples of 4) send those.
 		if (spi_tx_amount >= 4)
 		{
-			// De code komt hier soms vast te zitten en blijft de pin toggelen
 			HAL_GPIO_WritePin(SPI1_SS_GPIO_Port, SPI1_SS_Pin, RESET);
 			HAL_SPI_TransmitReceive_IT(&hspi1, &spi_tx_buf[spi_tx_i], spi_rx_buf, spi_tx_amount);
 			// SS is set again in SPI callback
@@ -429,24 +404,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 }
 
 /* ---------- SPI COMMUNICATION ---------- */
-/*
-void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
-{
 
-}
-*/
-
+// Currently not in use because the blocking functions for SPI are used for testing
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	// Set the SS line high after when transmission complete
 	HAL_GPIO_WritePin(SPI1_SS_GPIO_Port, SPI1_SS_Pin, SET);
 
 	// Update the currentSettings if new settings arrived with the last transmission
-	// For some reason the ESP doesn't always send anything when using higher speeds
-	// So check if the MISO line is not kept high
 	if (spi_rx_buf[RX_TRIG_CHANNEL] != 0) // A valid channel will always be greater than 0
 	{
-
 		// Make sure that the settings are valid before changing
 		if (spi_rx_buf[RX_TRIG_CHANNEL] < 3)
 			currentSettings.triggerChannel = spi_rx_buf[RX_TRIG_CHANNEL];
@@ -464,16 +431,13 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 	if (spi_tx_i >= SPI_TX_BUF_SIZE)
 	{
 		// Timer will be enabled on a new trigger activation
-		//HAL_TIM_Base_Stop_IT(&htim9);
+		HAL_TIM_Base_Stop_IT(&htim9);
 
 		spi_tx_i = 0;
 		process_i = 0;
 
 		// Processing is now done so apply the (new) settings
-		//update_settings();
-		//set_trigger_channel(currentSettings.triggerChannel);
-		//set_trigger(&hadc1, currentSettings.triggerEdge, currentSettings.triggerLevel);
-		//decimationFactor = DESIMATION_FACTORS[currentSettings.decimation_i];
+		update_settings();
 
 		// Reset the trigger
 		triggerActivated = 0;

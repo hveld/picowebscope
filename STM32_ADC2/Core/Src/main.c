@@ -106,7 +106,7 @@ int main(void)
   MX_TIM9_Init();
   /* USER CODE BEGIN 2 */
 
-  //Start the timer
+  //Start the timer (Disabled for testing)
   //HAL_TIM_Base_Start_IT(&htim9);
   set_trigger_channel(1);
   set_trigger(&hadc1, RISING_EDGE, 50);

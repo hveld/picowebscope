@@ -3,10 +3,8 @@
 
 #include "processing.h"
 #include "main.h"
-//#include "usb_device.h"
 #include <stdio.h>
 #include "settings.h"
-//#include "usbd_cdc_if.h"
 #include "processing.h"
 
 #define OUTPUT_AMOUNT	1000
