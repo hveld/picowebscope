@@ -14,7 +14,6 @@
             WaveformGenerator
             <label class="Frequency">
                 <p>frequency</p>
-                <!-- change the min max to the correct values -->
                 <input id="frequencySlider" type="range" min="10" max="100000" value="0" step="1">
                 <input id="FrequencyInputField" type="number" value="10" min="10" max="100000">
                 <div class=" range_output">
@@ -40,7 +39,6 @@
             <button onclick="FFTScopeChange()">Oscilloscope</button>
             <label class="centreFrequency">
                 <p>Frequency for the FFT</p>
-                <!-- change the min max to the correct values -->
                 <input id="centreFrequencySlider" type="range" min="10" max="500000" value="0" step="1">
                 <input id="CentreFrequencyInputField" type="number" value="10" min="10" max="500000">
                 <div class=" range_output">
@@ -49,7 +47,6 @@
             </label>
             <label class="Db per division">
                 <p>Volt per division (in dB)</p>
-                <!-- change the min max to the correct values -->
                 <input id="DbPerDivisionSlider" type="range" min="0" max="5" value="0" step="1">
                 <div class=" range_output">
                     <output name="DbPerDivisionOutput" id="DbPerDivisionSliderValue">Value: 10 mV</output>
@@ -62,14 +59,6 @@
                     <option value="uniform" selected="selected">uniform</option>
                 </select>
             </form>
-            <!--<label class="scan rate">
-                <p>scan rate</p>
-                 change the min max to the correct values
-                <input id="scanRateSlider" type="range" min="0" max="100" value="0" step="1">
-                <div class=" range_output">
-                    <output name="scanRateOutput" id="scanRateSliderValue">Value: 0</output>
-                </div>
-            </label>-->
         </div>
 
         <div class="grid-child scope" id="scope">
@@ -132,8 +121,6 @@
             <label>Off/On</label>
         </div>
         <div class="grid-child" id="Chart"></div>
-        <!-- <div class="grid-child fft" id="FFTChart"></div> -->
-
     </div>
     <script src="script.js"></script>
 </body>

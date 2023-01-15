@@ -3,9 +3,8 @@
 
 #include "processing.h"
 
-#define MAX_FILTER_TAPS 	64
-#define DMA_BUFFER_SIZE 	4000
-#define NO_TRIGGER_INDEX	DMA_BUFFER_SIZE + 1
+#define DMA_BUFFER_SIZE 	    4000
+#define NO_TRIGGER_INDEX	    DMA_BUFFER_SIZE + 1
 
 #define DEFUALT_TRIG_CH			1
 #define DEFAULT_TRIG_LVL		50

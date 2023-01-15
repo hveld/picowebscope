@@ -13,6 +13,7 @@ class AD9833 {
     }
 
   public:
+    // constructor
     AD9833(SPIClass &spi, int8_t sck = -1, int8_t mosi = -1, int8_t ss = -1) {
       _fsync_pin = ss;
       pinMode(_fsync_pin, OUTPUT);
@@ -24,9 +25,10 @@ class AD9833 {
       Control_Resister_Write(0b0000000100000000); //AD9833 Reset
     }
 
+
+    // copied from internet - more info in datasheet AD9833
     const int SINE     = 0b0010000000000000; //0x2000
     const int TRIANGLE = 0b0010000000000010; //0x2000
-
     void setWaveform(uint32_t frequency, uint16_t Waveform) {
       uint32_t FreqWord = (frequency * pow(2, 28)) / 25000000UL;
       uint16_t MSB = (uint16_t)((FreqWord & 0xFFFC000) >> 14);
