@@ -86,6 +86,7 @@ void task_process_buffer(void* pvParameters) {//task that sends the sampling dat
         JsonArray dataFFT = docFFT.createNestedArray("data");
         String outputFFT;
         // 0 == flattop, 1 == hanning, 2 == uniform
+        //deze functionaliteit moet naar de stm32
         if (ArrayForFFT[1] == 0) {
           styleFftData(0);
           Serial.println("flattop");
