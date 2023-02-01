@@ -1,0 +1,9 @@
+../Core/Src/processing.c:75:6:update_settings	16	static
+../Core/Src/processing.c:86:6:HAL_ADC_ConvCpltCallback	0	static
+../Core/Src/processing.c:97:6:HAL_ADC_ConvHalfCpltCallback	0	static
+../Core/Src/processing.c:208:6:process_DMA_buf	40	static
+../Core/Src/processing.c:277:6:HAL_ADC_LevelOutOfWindowCallback	8	static
+../Core/Src/processing.c:383:6:set_trigger_channel	0	static
+../Core/Src/processing.c:392:6:set_trigger	8	static
+../Core/Src/processing.c:414:6:HAL_TIM_PeriodElapsedCallback	16	static
+../Core/Src/processing.c:462:6:HAL_SPI_TxRxCpltCallback	8	static
